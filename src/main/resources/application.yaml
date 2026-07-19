@@ -1,3 +1,7 @@
 spring:
   application:
     name: atendimento
+  jpa:
+    open-in-view: false
+  flyway:
+    enabled: true
