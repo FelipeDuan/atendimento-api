@@ -1,7 +1,15 @@
 spring:
   application:
     name: atendimento
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:atendimento}
+    username: ${APP_DB_USER:atendimento_app}
+    password: ${APP_DB_PASSWORD:atendimento}
   jpa:
     open-in-view: false
+    hibernate:
+      ddl-auto: validate
   flyway:
     enabled: true
+    user: ${FLYWAY_USER:${POSTGRES_USER:atendimento}}
+    password: ${FLYWAY_PASSWORD:${POSTGRES_PASSWORD:trocar}}
