@@ -1,0 +1,6 @@
+springdoc:
+  api-docs:
+    enabled: false
+
+scalar:
+  enabled: false
