@@ -3,5 +3,7 @@ spring:
     name: atendimento
   jpa:
     open-in-view: false
+    hibernate:
+      ddl-auto: validate
   flyway:
     enabled: true
