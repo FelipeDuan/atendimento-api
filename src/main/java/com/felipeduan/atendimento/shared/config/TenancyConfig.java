@@ -1,0 +1,12 @@
+package com.felipeduan.atendimento.shared.config;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+@Configuration
+@EnableAspectJAutoProxy
+@EnableTransactionManagement(order = 0)
+public class TenancyConfig {
+    
+}
