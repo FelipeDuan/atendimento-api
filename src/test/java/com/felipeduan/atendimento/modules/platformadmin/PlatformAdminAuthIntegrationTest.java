@@ -80,20 +80,29 @@ class PlatformAdminAuthIntegrationTest extends AbstractIntegrationTest {
     String token = obterAccessToken();
 
     mockMvc
-        .perform(get(ENDPOINT_PROTEGIDO_PATH).header("Authorization", "Bearer " + token))
-        .andExpect(status().isNotFound());
+        .perform(
+            post(ENDPOINT_PROTEGIDO_PATH)
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+        .andExpect(status().isBadRequest());
   }
 
   @Test
   void deveRetornar401_semToken() throws Exception {
-    assertUnauthorized(mockMvc.perform(get(ENDPOINT_PROTEGIDO_PATH)));
+    assertUnauthorized(
+        mockMvc.perform(
+            post(ENDPOINT_PROTEGIDO_PATH).contentType(MediaType.APPLICATION_JSON).content("{}")));
   }
 
   @Test
   void deveRetornar401_comTokenInvalido() throws Exception {
     assertUnauthorized(
         mockMvc.perform(
-            get(ENDPOINT_PROTEGIDO_PATH).header("Authorization", "Bearer token-invalido")));
+            post(ENDPOINT_PROTEGIDO_PATH)
+                .header("Authorization", "Bearer token-invalido")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}")));
   }
 
   @Test
