@@ -54,11 +54,9 @@ jobs:
           path: build/libs/*.jar
           retention-days: 7
 
-  # TODO: habilitar após adicionar Dockerfile na raiz do módulo Gradle.
   docker:
     name: Build e push imagem
     needs: build-jar
-    if: false # TODO: trocar para true após adicionar Dockerfile
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -89,6 +87,7 @@ jobs:
         with:
           context: .
           push: true
+          platforms: linux/amd64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
@@ -103,16 +102,22 @@ jobs:
     runs-on: ubuntu-latest
     environment: qa
     steps:
-      - name: Deploy via Dokploy API
+      - name: Atualizar imagem e deploy QA
         env:
           DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
           DOKPLOY_SERVER_URL: ${{ vars.DOKPLOY_SERVER_URL }}
           DOKPLOY_APP_ID: ${{ vars.DOKPLOY_QA_APP_ID }}
           IMAGE_TAG: ghcr.io/${{ github.repository }}:sha-${{ github.sha }}
         run: |
-          echo "TODO: integrar nodilabs/dokploy-deploy-action ou curl application.deploy"
-          echo "App: $DOKPLOY_APP_ID | Imagem: $IMAGE_TAG"
-          # curl -X POST "$DOKPLOY_SERVER_URL/api/application.deploy" ...
+          curl -sf -X POST "${DOKPLOY_SERVER_URL}/api/application.saveDockerProvider" \
+            -H "x-api-key: ${DOKPLOY_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "{\"applicationId\":\"${DOKPLOY_APP_ID}\",\"dockerImage\":\"${IMAGE_TAG}\",\"registryUrl\":\"ghcr.io\"}"
+
+          curl -sf -X POST "${DOKPLOY_SERVER_URL}/api/application.deploy" \
+            -H "x-api-key: ${DOKPLOY_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "{\"applicationId\":\"${DOKPLOY_APP_ID}\"}"
 
   deploy-production:
     name: Deploy Produção (main)
@@ -125,12 +130,19 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: Deploy via Dokploy API
+      - name: Atualizar imagem e deploy produção
         env:
           DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
           DOKPLOY_SERVER_URL: ${{ vars.DOKPLOY_SERVER_URL }}
           DOKPLOY_APP_ID: ${{ vars.DOKPLOY_PROD_APP_ID }}
           IMAGE_TAG: ghcr.io/${{ github.repository }}:sha-${{ github.sha }}
         run: |
-          echo "TODO: integrar nodilabs/dokploy-deploy-action ou curl application.deploy"
-          echo "App: $DOKPLOY_APP_ID | Imagem: $IMAGE_TAG"
+          curl -sf -X POST "${DOKPLOY_SERVER_URL}/api/application.saveDockerProvider" \
+            -H "x-api-key: ${DOKPLOY_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "{\"applicationId\":\"${DOKPLOY_APP_ID}\",\"dockerImage\":\"${IMAGE_TAG}\",\"registryUrl\":\"ghcr.io\"}"
+
+          curl -sf -X POST "${DOKPLOY_SERVER_URL}/api/application.deploy" \
+            -H "x-api-key: ${DOKPLOY_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "{\"applicationId\":\"${DOKPLOY_APP_ID}\"}"
