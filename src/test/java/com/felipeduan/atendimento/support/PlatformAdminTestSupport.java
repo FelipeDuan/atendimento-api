@@ -14,30 +14,39 @@ import org.springframework.test.web.servlet.ResultActions;
 public final class PlatformAdminTestSupport {
 
   private static final String LOGIN_PATH = "/auth/plataforma/login";
+  public static final String NOME = "Admin Teste";
+  public static final String EMAIL = "admin-teste@plataforma.local";
+  public static final String SENHA = "senha-forte-de-teste";
 
   private PlatformAdminTestSupport() {
     throw new IllegalStateException("Classe utilitária não deve ser instanciada");
   }
 
-  public static void salvarAdministrador(
+  public static AdministradorPlataforma salvarAdministrador(
       AdministradorPlataformaRepository repository,
       PasswordEncoder passwordEncoder,
       String nome,
       String email,
       String senha) {
     var administrador = new AdministradorPlataforma(nome, email, passwordEncoder.encode(senha));
-    repository.save(administrador);
+    return repository.save(administrador);
+  }
+
+  public static ResultActions performLogin(MockMvc mockMvc, String email, String senha)
+      throws Exception {
+    return mockMvc.perform(
+        post(LOGIN_PATH)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(corpoLogin(email, senha)));
   }
 
   public static String obterToken(MockMvc mockMvc, String email, String senha) throws Exception {
-    ResultActions resposta =
-        mockMvc.perform(
-            post(LOGIN_PATH)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(corpoLogin(email, senha)));
-
     String corpo =
-        resposta.andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        performLogin(mockMvc, email, senha)
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
     return JsonPath.read(corpo, "$.accessToken");
   }
 
