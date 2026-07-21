@@ -1,7 +1,7 @@
 GRADLE := ./gradlew
 TEST ?= com.felipeduan.atendimento
 
-.PHONY: help test test-fresh test-fresh-log test-class boot run build clean format format-check compile
+.PHONY: help test test-fresh test-fresh-log test-class check boot run build clean format format-check compile
 
 help:
 	@echo "Targets:"
@@ -14,6 +14,7 @@ help:
 	@echo "  make compile           compila sem testes"
 	@echo "  make format            aplica spotless"
 	@echo "  make format-check      verifica spotless"
+	@echo "  make check             spotless + checkstyle + testes (mesmo gate do CI)"
 	@echo "  make clean             limpa build"
 
 test:
@@ -45,6 +46,9 @@ format:
 
 format-check:
 	$(GRADLE) spotlessCheck
+
+check:
+	$(GRADLE) check
 
 clean:
 	$(GRADLE) clean
