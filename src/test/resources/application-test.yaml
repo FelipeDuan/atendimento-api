@@ -6,6 +6,10 @@ spring:
     user: test
     password: test
 
+jwt:
+  secret: test-secret-com-pelo-menos-32-caracteres
+  expiration-minutes: 15
+
 # logging:
 #   level:
 #     org.hibernate.SQL: debug

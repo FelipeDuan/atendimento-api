@@ -1,0 +1,11 @@
+springdoc:
+  api-docs:
+    enabled: true
+
+scalar:
+  enabled: true
+  pageTitle: "Atendimento API"
+  description: "API para SaaS de atendimento via WhatsApp"
+  theme: deepSpace
+  layout: modern
+  darkMode: true

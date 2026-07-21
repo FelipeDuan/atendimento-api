@@ -5,15 +5,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class EmpresaService {
-    
-    private final EmpresaRepository repository;
 
-    public EmpresaService(EmpresaRepository repository) {
-        this.repository = repository;
-    }
+  private final EmpresaRepository repository;
 
-    @Transactional
-    public Empresa salvar(Empresa empresa) {
-        return repository.save(empresa);
-    }
+  public EmpresaService(EmpresaRepository repository) {
+    this.repository = repository;
+  }
+
+  @Transactional
+  public Empresa salvar(Empresa empresa) {
+    return repository.save(empresa);
+  }
 }

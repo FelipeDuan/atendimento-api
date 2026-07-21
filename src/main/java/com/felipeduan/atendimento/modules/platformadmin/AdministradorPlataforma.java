@@ -1,4 +1,4 @@
-package com.felipeduan.atendimento.modules.empresas;
+package com.felipeduan.atendimento.modules.platformadmin;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -6,17 +6,16 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.Instant;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "empresa")
+@Table(name = "administrador_plataforma")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Empresa {
+public class AdministradorPlataforma {
 
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
@@ -25,26 +24,15 @@ public class Empresa {
   @Column(nullable = false)
   private String nome;
 
-  @Column(nullable = false, unique = true, length = 14)
-  private String cnpj;
-
-  @Column(nullable = false)
+  @Column(nullable = false, unique = true)
   private String email;
 
-  @Column(nullable = false)
-  private String status;
+  @Column(name = "senha_hash", nullable = false)
+  private String senhaHash;
 
-  @Column(name = "phone_number_id")
-  private String phoneNumberId;
-
-  @Column(name = "data_criacao", nullable = false)
-  private Instant dataCriacao;
-
-  public Empresa(String nome, String cnpj, String email) {
+  public AdministradorPlataforma(String nome, String email, String senhaHash) {
     this.nome = nome;
-    this.cnpj = cnpj;
     this.email = email;
-    this.status = "ATIVA";
-    this.dataCriacao = Instant.now();
+    this.senhaHash = senhaHash;
   }
 }
