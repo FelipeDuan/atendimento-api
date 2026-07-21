@@ -1,6 +1,7 @@
 package com.felipeduan.atendimento.support;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.jayway.jsonpath.JsonPath;
@@ -33,6 +34,22 @@ public final class AuthHttpSupport {
             .getResponse()
             .getContentAsString();
     return JsonPath.read(corpo, "$.accessToken");
+  }
+
+  public static String obterTokenRestrito(MockMvc mockMvc, String email, String senha)
+      throws Exception {
+    String corpo =
+        postLogin(mockMvc, email, senha)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.exigeTrocarSenha").value(true))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    return JsonPath.read(corpo, "$.accessToken");
+  }
+
+  public static String extrairAccessToken(String corpoResposta) {
+    return JsonPath.read(corpoResposta, "$.accessToken");
   }
 
   public static ResultActions postSwitchTenant(MockMvc mockMvc, String token, UUID empresaId)
