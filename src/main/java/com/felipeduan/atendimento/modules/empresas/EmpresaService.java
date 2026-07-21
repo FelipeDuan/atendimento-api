@@ -1,6 +1,7 @@
 package com.felipeduan.atendimento.modules.empresas;
 
 import com.felipeduan.atendimento.modules.empresas.dto.AdminInicialRequest;
+import com.felipeduan.atendimento.modules.empresas.dto.AtualizarEmpresaRequest;
 import com.felipeduan.atendimento.modules.empresas.dto.CriarEmpresaRequest;
 import com.felipeduan.atendimento.modules.empresas.dto.EmpresaResponse;
 import com.felipeduan.atendimento.modules.empresas.exception.CnpjJaCadastradoException;
@@ -34,6 +35,25 @@ public class EmpresaService {
     vincularAdminNaEmpresa(empresa.getId(), admin.getId());
 
     return empresaMapper.toResponse(empresa, admin);
+  }
+
+  @Transactional(readOnly = true)
+  public EmpresaResponse buscar(UUID id) {
+    return empresaMapper.toResponse(buscarPorId(id));
+  }
+
+  @Transactional
+  public EmpresaResponse atualizar(UUID id, AtualizarEmpresaRequest request) {
+    Empresa empresa = buscarPorId(id);
+    empresa.atualizar(request.nome(), request.email(), request.phoneNumberId());
+    return empresaMapper.toResponse(empresaRepository.save(empresa));
+  }
+
+  @Transactional
+  public void inativar(UUID id) {
+    Empresa empresa = buscarPorId(id);
+    empresa.inativar();
+    empresaRepository.save(empresa);
   }
 
   private void validarCnpjDisponivel(String cnpj) {

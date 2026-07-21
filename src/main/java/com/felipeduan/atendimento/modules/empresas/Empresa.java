@@ -13,9 +13,11 @@ import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "empresa")
+@SQLRestriction("status = 'ATIVA'")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Empresa {
@@ -49,5 +51,15 @@ public class Empresa {
     this.email = email;
     this.status = EmpresaStatus.ATIVA;
     this.dataCriacao = Instant.now();
+  }
+
+  public void atualizar(String nome, String email, String phoneNumberId) {
+    this.nome = nome;
+    this.email = email;
+    this.phoneNumberId = phoneNumberId;
+  }
+
+  public void inativar() {
+    this.status = EmpresaStatus.INATIVA;
   }
 }

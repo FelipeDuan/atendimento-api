@@ -10,5 +10,6 @@ public record EmpresaResponse(
     String cnpj,
     String email,
     EmpresaStatus status,
+    String phoneNumberId,
     Instant dataCriacao,
     AdminInicialResponse administradorInicial) {}
