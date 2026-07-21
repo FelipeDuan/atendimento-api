@@ -2,10 +2,14 @@ package com.felipeduan.atendimento.modules.empresas;
 
 import com.felipeduan.atendimento.modules.empresas.dto.AtualizarEmpresaRequest;
 import com.felipeduan.atendimento.modules.empresas.dto.CriarEmpresaRequest;
+import com.felipeduan.atendimento.modules.empresas.dto.EmpresaResumoResponse;
 import com.felipeduan.atendimento.modules.empresas.dto.EmpresaResponse;
+import com.felipeduan.atendimento.shared.dto.PageResponse;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -29,6 +33,18 @@ public class EmpresaController {
   @ResponseStatus(HttpStatus.CREATED)
   public EmpresaResponse criar(@Valid @RequestBody CriarEmpresaRequest request) {
     return empresaService.criar(request);
+  }
+
+  @GetMapping
+  public PageResponse<EmpresaResumoResponse> listar(
+      @PageableDefault(size = 20, sort = "dataCriacao") Pageable pageable) {
+    return empresaService.listarAtivas(pageable);
+  }
+
+  @GetMapping("/inativas")
+  public PageResponse<EmpresaResumoResponse> listarInativas(
+      @PageableDefault(size = 20) Pageable pageable) {
+    return empresaService.listarInativas(pageable);
   }
 
   @GetMapping("/{id}")
