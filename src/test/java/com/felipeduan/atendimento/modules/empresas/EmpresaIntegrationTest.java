@@ -102,6 +102,20 @@ class EmpresaIntegrationTest extends AbstractIntegrationTest {
   }
 
   @Test
+  void deveRetornar400_quandoSenhaTemporariaCurta() throws Exception {
+    String token = obterTokenPlatformAdmin();
+    String cnpj = cnpjUnico();
+    String corpo = corpoCriarEmpresa(cnpj, "admin-" + cnpj + "@empresa.local", "123123");
+
+    postCriarEmpresa(mockMvc, token, corpo)
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.title").value("Dados inválidos"))
+        .andExpect(
+            jsonPath("$.errors[?(@.campo == 'administradorInicial.senhaTemporaria')].mensagem")
+                .value("A senha temporária deve ter no mínimo 8 caracteres"));
+  }
+
+  @Test
   void deveRetornar409_quandoCnpjDuplicado() throws Exception {
     String token = obterTokenPlatformAdmin();
     String cnpj = cnpjUnico();

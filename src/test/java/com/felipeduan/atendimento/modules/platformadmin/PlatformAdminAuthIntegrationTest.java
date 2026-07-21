@@ -108,14 +108,20 @@ class PlatformAdminAuthIntegrationTest extends AbstractIntegrationTest {
   void deveRetornar400_quandoEmailInvalido() throws Exception {
     ResultActions resposta = performLogin(mockMvc, "nao-e-email", SENHA);
 
-    resposta.andExpect(status().isBadRequest());
+    resposta
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.title").value("Dados inválidos"))
+        .andExpect(jsonPath("$.errors[?(@.campo == 'email')].mensagem").value("Informe um e-mail válido"));
   }
 
   @Test
   void deveRetornar400_quandoSenhaEmBranco() throws Exception {
     ResultActions resposta = performLogin(mockMvc, EMAIL, "");
 
-    resposta.andExpect(status().isBadRequest());
+    resposta
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.title").value("Dados inválidos"))
+        .andExpect(jsonPath("$.errors[?(@.campo == 'senha')].mensagem").value("A senha é obrigatória"));
   }
 
   private String obterAccessToken() throws Exception {
