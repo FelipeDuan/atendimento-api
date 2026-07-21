@@ -5,10 +5,14 @@ WORKDIR /app
 COPY gradlew gradlew.bat ./
 COPY gradle gradle
 COPY build.gradle.kts settings.gradle.kts ./
+
+RUN chmod +x gradlew \
+    && ./gradlew dependencies --no-daemon -q
+
 COPY config config
 COPY src src
 
-RUN chmod +x gradlew && ./gradlew bootJar -x test --no-daemon
+RUN ./gradlew bootJar -x test --no-daemon
 
 FROM eclipse-temurin:25-jre-alpine
 
