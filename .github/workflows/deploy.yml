@@ -1,0 +1,136 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Ambiente alvo (qa ou production)
+        required: true
+        type: choice
+        options:
+          - qa
+          - production
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  test:
+    name: Testes (gate)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: "25"
+          distribution: temurin
+          cache: gradle
+      - run: ./gradlew test --no-daemon
+
+  build-jar:
+    name: Build bootJar
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: "25"
+          distribution: temurin
+          cache: gradle
+      - run: ./gradlew bootJar -x test --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: boot-jar-${{ github.sha }}
+          path: build/libs/*.jar
+          retention-days: 7
+
+  # TODO: habilitar após adicionar Dockerfile na raiz do módulo Gradle.
+  docker:
+    name: Build e push imagem
+    needs: build-jar
+    if: false # TODO: trocar para true após adicionar Dockerfile
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tags }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Metadados da imagem
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=sha-
+            type=ref,event=branch
+
+      - name: Build e push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  deploy-qa:
+    name: Deploy QA (develop)
+    needs: docker
+    if: |
+      always() &&
+      needs.docker.result == 'success' &&
+      (github.ref == 'refs/heads/develop' ||
+       (github.event_name == 'workflow_dispatch' && inputs.environment == 'qa'))
+    runs-on: ubuntu-latest
+    environment: qa
+    steps:
+      - name: Deploy via Dokploy API
+        env:
+          DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
+          DOKPLOY_SERVER_URL: ${{ vars.DOKPLOY_SERVER_URL }}
+          DOKPLOY_APP_ID: ${{ vars.DOKPLOY_QA_APP_ID }}
+          IMAGE_TAG: ghcr.io/${{ github.repository }}:sha-${{ github.sha }}
+        run: |
+          echo "TODO: integrar nodilabs/dokploy-deploy-action ou curl application.deploy"
+          echo "App: $DOKPLOY_APP_ID | Imagem: $IMAGE_TAG"
+          # curl -X POST "$DOKPLOY_SERVER_URL/api/application.deploy" ...
+
+  deploy-production:
+    name: Deploy Produção (main)
+    needs: docker
+    if: |
+      always() &&
+      needs.docker.result == 'success' &&
+      (github.ref == 'refs/heads/main' ||
+       (github.event_name == 'workflow_dispatch' && inputs.environment == 'production'))
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Deploy via Dokploy API
+        env:
+          DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
+          DOKPLOY_SERVER_URL: ${{ vars.DOKPLOY_SERVER_URL }}
+          DOKPLOY_APP_ID: ${{ vars.DOKPLOY_PROD_APP_ID }}
+          IMAGE_TAG: ghcr.io/${{ github.repository }}:sha-${{ github.sha }}
+        run: |
+          echo "TODO: integrar nodilabs/dokploy-deploy-action ou curl application.deploy"
+          echo "App: $DOKPLOY_APP_ID | Imagem: $IMAGE_TAG"
