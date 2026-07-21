@@ -3,8 +3,8 @@ package com.felipeduan.atendimento.modules.empresas;
 import com.felipeduan.atendimento.modules.empresas.dto.AdminInicialRequest;
 import com.felipeduan.atendimento.modules.empresas.dto.AtualizarEmpresaRequest;
 import com.felipeduan.atendimento.modules.empresas.dto.CriarEmpresaRequest;
-import com.felipeduan.atendimento.modules.empresas.dto.EmpresaResumoResponse;
 import com.felipeduan.atendimento.modules.empresas.dto.EmpresaResponse;
+import com.felipeduan.atendimento.modules.empresas.dto.EmpresaResumoResponse;
 import com.felipeduan.atendimento.modules.empresas.exception.CnpjJaCadastradoException;
 import com.felipeduan.atendimento.modules.empresas.exception.EmpresaNaoEncontradaException;
 import com.felipeduan.atendimento.modules.usuarios.Usuario;
@@ -12,14 +12,10 @@ import com.felipeduan.atendimento.modules.usuarios.UsuarioService;
 import com.felipeduan.atendimento.modules.vinculos.VinculoService;
 import com.felipeduan.atendimento.shared.dto.PageResponse;
 import com.felipeduan.atendimento.shared.tenancy.TenantContext;
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class EmpresaService {
 
   private final EmpresaRepository empresaRepository;
+  private final EmpresaRegistroRepository empresaRegistroRepository;
   private final UsuarioService usuarioService;
   private final VinculoService vinculoService;
   private final EmpresaMapper empresaMapper;
@@ -46,31 +43,42 @@ public class EmpresaService {
 
   @Transactional(readOnly = true)
   public PageResponse<EmpresaResumoResponse> listarAtivas(Pageable pageable) {
-    Page<EmpresaResumoResponse> pagina =
-        empresaRepository
-            .findByStatus(EmpresaStatus.ATIVA, pageable)
-            .map(empresaMapper::toResumoResponse);
-    return PageResponse.of(pagina);
+    return PageResponse.of(
+        empresaRepository.findAtivas(pageable).map(empresaMapper::toResumoResponse));
   }
 
   @Transactional(readOnly = true)
   public PageResponse<EmpresaResumoResponse> listarInativas(Pageable pageable) {
-    Page<Object[]> paginaBruta =
-        empresaRepository.findPaginaResumoPorStatus(EmpresaStatus.INATIVA.name(), pageable);
+    return PageResponse.of(
+        empresaRegistroRepository
+            .findByStatus(EmpresaStatus.INATIVA, pageable)
+            .map(empresaMapper::toResumoResponse));
+  }
 
-    List<EmpresaResumoResponse> conteudo = new ArrayList<>();
-    for (Object[] linha : paginaBruta.getContent()) {
-      conteudo.add(mapearResumo(linha));
+  @Transactional(readOnly = true)
+  public List<EmpresaResumoResponse> buscarResumosPorIds(Collection<UUID> ids) {
+    if (ids.isEmpty()) {
+      return List.of();
     }
 
-    Page<EmpresaResumoResponse> pagina =
-        new PageImpl<>(conteudo, pageable, paginaBruta.getTotalElements());
-    return PageResponse.of(pagina);
+    return empresaRegistroRepository.findByIdIn(ids).stream()
+        .map(empresaMapper::toResumoResponse)
+        .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public List<UUID> listarIdsEmpresasAtivas() {
+    return empresaRepository.findIdsAtivas();
   }
 
   @Transactional(readOnly = true)
   public EmpresaResponse buscar(UUID id) {
     return empresaMapper.toResponse(buscarPorId(id));
+  }
+
+  @Transactional(readOnly = true)
+  public Empresa buscarPorId(UUID id) {
+    return empresaRepository.findById(id).orElseThrow(() -> new EmpresaNaoEncontradaException(id));
   }
 
   @Transactional
@@ -87,8 +95,10 @@ public class EmpresaService {
     empresaRepository.save(empresa);
   }
 
+  // abaixo são passos privados
+
   private void validarCnpjDisponivel(String cnpj) {
-    if (empresaRepository.existsByCnpj(cnpj)) {
+    if (empresaRegistroRepository.existsByCnpj(cnpj)) {
       throw new CnpjJaCadastradoException();
     }
   }
@@ -105,48 +115,5 @@ public class EmpresaService {
   private void vincularAdminNaEmpresa(UUID empresaId, UUID usuarioId) {
     TenantContext.withTenantId(
         empresaId, () -> vinculoService.vincularComoAdministrador(usuarioId, empresaId));
-  }
-
-  @Transactional(readOnly = true)
-  public List<UUID> listarIdsEmpresasAtivas() {
-    List<UUID> empresasAtivas = new ArrayList<>();
-
-    Page<Empresa> pagina =
-        empresaRepository.findByStatus(EmpresaStatus.ATIVA, Pageable.unpaged());
-    for (Empresa empresa : pagina.getContent()) {
-      empresasAtivas.add(empresa.getId());
-    }
-
-    return empresasAtivas;
-  }
-
-  private EmpresaResumoResponse mapearResumo(Object[] linha) {
-    Instant dataCriacao = extrairInstant(linha[6]);
-
-    return new EmpresaResumoResponse(
-        (UUID) linha[0],
-        (String) linha[1],
-        (String) linha[2],
-        (String) linha[3],
-        EmpresaStatus.valueOf((String) linha[4]),
-        (String) linha[5],
-        dataCriacao);
-  }
-
-  private Instant extrairInstant(Object valor) {
-    return switch (valor) {
-      case Instant instant -> instant;
-      case Timestamp timestamp -> timestamp.toInstant();
-      case java.time.OffsetDateTime offsetDateTime -> offsetDateTime.toInstant();
-      case java.util.Date date -> date.toInstant();
-      default ->
-          throw new IllegalStateException(
-              "Tipo temporal não suportado: " + valor.getClass().getName());
-    };
-  }
-
-  @Transactional(readOnly = true)
-  public Empresa buscarPorId(UUID id) {
-    return empresaRepository.findById(id).orElseThrow(() -> new EmpresaNaoEncontradaException(id));
   }
 }
