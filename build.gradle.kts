@@ -1,5 +1,7 @@
 plugins {
 	java
+	checkstyle
+	id("com.diffplug.spotless") version "7.0.4"
 	id("org.springframework.boot") version "4.1.0"
 	id("io.spring.dependency-management") version "1.1.7"
 }
@@ -51,6 +53,22 @@ dependencies {
 	testCompileOnly("org.projectlombok:lombok")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	testAnnotationProcessor("org.projectlombok:lombok")
+}
+
+checkstyle {
+	toolVersion = "10.23.1"
+	configDirectory.set(layout.projectDirectory.dir("config/checkstyle"))
+	isIgnoreFailures = false
+}
+
+spotless {
+	java {
+		target("src/*/java/**/*.java")
+		googleJavaFormat("1.35.0")
+		removeUnusedImports()
+		trimTrailingWhitespace()
+		endWithNewline()
+	}
 }
 
 tasks.withType<Test> {
