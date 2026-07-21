@@ -4,7 +4,7 @@ import com.felipeduan.atendimento.shared.exception.DomainException;
 
 public class CredenciaisInvalidasException extends DomainException {
 
-    public CredenciaisInvalidasException() {
-        super("E-mail ou senha inválidos.");
-    }
+  public CredenciaisInvalidasException() {
+    super("E-mail ou senha inválidos.");
+  }
 }

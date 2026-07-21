@@ -12,39 +12,38 @@ import org.springframework.transaction.annotation.Transactional;
 @Profile("!test")
 public class PlatformAdminSeed implements ApplicationRunner {
 
-    private final AdministradorPlataformaRepository repository;
-    private final PasswordEncoder passwordEncoder;
+  private final AdministradorPlataformaRepository repository;
+  private final PasswordEncoder passwordEncoder;
 
-    @Value("${PLATFORM_ADMIN_EMAIL:}")
-    private String email;
+  @Value("${PLATFORM_ADMIN_EMAIL:}")
+  private String email;
 
-    @Value("${PLATFORM_ADMIN_NOME:Administrador da Plataforma}")
-    private String nome;
+  @Value("${PLATFORM_ADMIN_NOME:Administrador da Plataforma}")
+  private String nome;
 
-    @Value("${PLATFORM_ADMIN_PASSWORD:}")
-    private String senha;
+  @Value("${PLATFORM_ADMIN_PASSWORD:}")
+  private String senha;
 
-    public PlatformAdminSeed(
-            AdministradorPlataformaRepository repository,
-            PasswordEncoder passwordEncoder) {
-        this.repository = repository;
-        this.passwordEncoder = passwordEncoder;
+  public PlatformAdminSeed(
+      AdministradorPlataformaRepository repository, PasswordEncoder passwordEncoder) {
+    this.repository = repository;
+    this.passwordEncoder = passwordEncoder;
+  }
+
+  @Override
+  @Transactional
+  public void run(ApplicationArguments args) {
+    if (email.isBlank() || senha.isBlank()) {
+      return;
     }
 
-    @Override
-    @Transactional
-    public void run(ApplicationArguments args) {
-        if (email.isBlank() || senha.isBlank()) {
-            return;
-        }
-
-        if (repository.findByEmail(email).isPresent()) {
-            return;
-        }
-
-        String senhaHash = passwordEncoder.encode(senha);
-        
-        var administrador = new AdministradorPlataforma(nome, email, senhaHash);
-        repository.save(administrador);
+    if (repository.findByEmail(email).isPresent()) {
+      return;
     }
+
+    String senhaHash = passwordEncoder.encode(senha);
+
+    var administrador = new AdministradorPlataforma(nome, email, senhaHash);
+    repository.save(administrador);
+  }
 }

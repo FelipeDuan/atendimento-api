@@ -7,6 +7,4 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Configuration
 @EnableAspectJAutoProxy
 @EnableTransactionManagement(order = 0)
-public class TenancyConfig {
-    
-}
+public class TenancyConfig {}
