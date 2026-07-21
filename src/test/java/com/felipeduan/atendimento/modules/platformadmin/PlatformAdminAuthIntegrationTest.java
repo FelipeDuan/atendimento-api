@@ -111,7 +111,8 @@ class PlatformAdminAuthIntegrationTest extends AbstractIntegrationTest {
     resposta
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.title").value("Dados inválidos"))
-        .andExpect(jsonPath("$.errors[?(@.campo == 'email')].mensagem").value("Informe um e-mail válido"));
+        .andExpect(
+            jsonPath("$.errors[?(@.campo == 'email')].mensagem").value("Informe um e-mail válido"));
   }
 
   @Test
@@ -121,7 +122,8 @@ class PlatformAdminAuthIntegrationTest extends AbstractIntegrationTest {
     resposta
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.title").value("Dados inválidos"))
-        .andExpect(jsonPath("$.errors[?(@.campo == 'senha')].mensagem").value("A senha é obrigatória"));
+        .andExpect(
+            jsonPath("$.errors[?(@.campo == 'senha')].mensagem").value("A senha é obrigatória"));
   }
 
   private String obterAccessToken() throws Exception {
