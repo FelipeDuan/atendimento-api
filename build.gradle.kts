@@ -4,6 +4,8 @@ plugins {
 	id("io.spring.dependency-management") version "1.1.7"
 }
 
+import org.springframework.boot.gradle.tasks.run.BootRun
+
 group = "com.felipeduan"
 version = "0.0.1-SNAPSHOT"
 
@@ -56,5 +58,34 @@ tasks.withType<Test> {
 	testLogging {
 		events("passed", "failed", "skipped")
 		showStandardStreams = true
+	}
+}
+
+fun carregarDotEnv(arquivo: File): Map<String, String> {
+	if (!arquivo.isFile) {
+		return emptyMap()
+	}
+
+	return arquivo.readLines()
+		.map { it.trim() }
+		.filter { it.isNotEmpty() && !it.startsWith("#") }
+		.mapNotNull { linha ->
+			val separador = linha.indexOf('=')
+			if (separador <= 0) {
+				null
+			} else {
+				linha.substring(0, separador) to linha.substring(separador + 1)
+			}
+		}
+		.toMap()
+}
+
+tasks.named<BootRun>("bootRun") {
+	val dotEnv = carregarDotEnv(layout.projectDirectory.file(".env").asFile)
+	dotEnv.forEach { (nome, valor) ->
+		
+		if (System.getenv(nome) == null) {
+			environment(nome, valor)
+		}
 	}
 }
