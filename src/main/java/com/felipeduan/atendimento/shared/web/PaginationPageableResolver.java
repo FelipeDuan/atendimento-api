@@ -37,7 +37,6 @@ final class PaginationPageableResolver implements HandlerMethodArgumentResolver 
       throw new IllegalStateException("@Pagination ausente após supportsParameter");
     }
 
-    // Instância por request: setFallbackPageable não é thread-safe num resolver compartilhado.
     PageableHandlerMethodArgumentResolver resolver = new PageableHandlerMethodArgumentResolver();
     resolver.setMaxPageSize(maxPageSize);
     resolver.setFallbackPageable(
