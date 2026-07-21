@@ -1,8 +1,14 @@
 package com.felipeduan.atendimento.modules.empresas;
 
+import static com.felipeduan.atendimento.support.AuthHttpSupport.obterToken;
+import static com.felipeduan.atendimento.support.AuthIntegrationTestSupport.liberarSenhaDefinitiva;
 import static com.felipeduan.atendimento.support.EmpresaHttpSupport.cnpjUnico;
+import static com.felipeduan.atendimento.support.EmpresaHttpSupport.corpoAtualizarEmpresa;
 import static com.felipeduan.atendimento.support.EmpresaHttpSupport.corpoCriarEmpresa;
+import static com.felipeduan.atendimento.support.EmpresaHttpSupport.deleteEmpresa;
+import static com.felipeduan.atendimento.support.EmpresaHttpSupport.getEmpresa;
 import static com.felipeduan.atendimento.support.EmpresaHttpSupport.postCriarEmpresa;
+import static com.felipeduan.atendimento.support.EmpresaHttpSupport.putEmpresa;
 import static com.felipeduan.atendimento.support.PlatformAdminTestSupport.EMAIL;
 import static com.felipeduan.atendimento.support.PlatformAdminTestSupport.NOME;
 import static com.felipeduan.atendimento.support.PlatformAdminTestSupport.SENHA;
@@ -201,7 +207,101 @@ class EmpresaIntegrationTest extends AbstractIntegrationTest {
         .isEqualTo(1);
   }
 
+  @Test
+  void deveRetornarEmpresa_quandoPlatformAdminConsulta() throws Exception {
+    UUID empresaId = criarEmpresaPadrao();
+    String token = obterTokenPlatformAdmin();
+
+    getEmpresa(mockMvc, token, empresaId)
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(empresaId.toString()))
+        .andExpect(jsonPath("$.status").value("ATIVA"));
+  }
+
+  @Test
+  void deveRetornarEmpresa_quandoAdministradorConsultaPropriaEmpresa() throws Exception {
+    DadosEmpresaCriada dados = criarEmpresaComAdmin();
+    liberarSenhaDefinitiva(
+        usuarioRepository, passwordEncoder, dados.emailAdmin(), dados.senhaAdmin());
+    String token = obterToken(mockMvc, dados.emailAdmin(), dados.senhaAdmin());
+
+    getEmpresa(mockMvc, token, dados.empresaId())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(dados.empresaId().toString()));
+  }
+
+  @Test
+  void deveRetornar403_quandoAdministradorConsultaOutraEmpresa() throws Exception {
+    DadosEmpresaCriada dados = criarEmpresaComAdmin();
+    liberarSenhaDefinitiva(
+        usuarioRepository, passwordEncoder, dados.emailAdmin(), dados.senhaAdmin());
+    String token = obterToken(mockMvc, dados.emailAdmin(), dados.senhaAdmin());
+
+    getEmpresa(mockMvc, token, UUID.randomUUID()).andExpect(status().isForbidden());
+  }
+
+  @Test
+  void deveAtualizarEmpresa_quandoAdministradorDaPropriaEmpresa() throws Exception {
+    DadosEmpresaCriada dados = criarEmpresaComAdmin();
+    liberarSenhaDefinitiva(
+        usuarioRepository, passwordEncoder, dados.emailAdmin(), dados.senhaAdmin());
+    String token = obterToken(mockMvc, dados.emailAdmin(), dados.senhaAdmin());
+
+    putEmpresa(
+            mockMvc,
+            token,
+            dados.empresaId(),
+            corpoAtualizarEmpresa("Empresa Atualizada", "novo@empresa.local", "phone-123"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.nome").value("Empresa Atualizada"))
+        .andExpect(jsonPath("$.email").value("novo@empresa.local"))
+        .andExpect(jsonPath("$.phoneNumberId").value("phone-123"));
+  }
+
+  @Test
+  void deveInativarEmpresa_quandoPlatformAdmin() throws Exception {
+    UUID empresaId = criarEmpresaPadrao();
+    String token = obterTokenPlatformAdmin();
+
+    deleteEmpresa(mockMvc, token, empresaId).andExpect(status().isNoContent());
+
+    getEmpresa(mockMvc, token, empresaId).andExpect(status().isNotFound());
+  }
+
+  @Test
+  void deveRetornar403_quandoAdministradorTentaInativarEmpresa() throws Exception {
+    DadosEmpresaCriada dados = criarEmpresaComAdmin();
+    liberarSenhaDefinitiva(
+        usuarioRepository, passwordEncoder, dados.emailAdmin(), dados.senhaAdmin());
+    String token = obterToken(mockMvc, dados.emailAdmin(), dados.senhaAdmin());
+
+    deleteEmpresa(mockMvc, token, dados.empresaId()).andExpect(status().isForbidden());
+  }
+
+  private UUID criarEmpresaPadrao() throws Exception {
+    return criarEmpresaComAdmin().empresaId();
+  }
+
+  private DadosEmpresaCriada criarEmpresaComAdmin() throws Exception {
+    String cnpj = cnpjUnico();
+    String emailAdmin = "admin-" + cnpj + "@empresa.local";
+    String senha = "SenhaTemp123!";
+    String token = obterTokenPlatformAdmin();
+
+    String json =
+        postCriarEmpresa(mockMvc, token, corpoCriarEmpresa(cnpj, emailAdmin, senha))
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    UUID empresaId = UUID.fromString(JsonPath.read(json, "$.id"));
+    return new DadosEmpresaCriada(empresaId, emailAdmin, senha);
+  }
+
   private String obterTokenPlatformAdmin() throws Exception {
     return PlatformAdminTestSupport.obterToken(mockMvc, EMAIL, SENHA);
   }
+
+  private record DadosEmpresaCriada(UUID empresaId, String emailAdmin, String senhaAdmin) {}
 }
