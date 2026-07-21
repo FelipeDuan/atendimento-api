@@ -1,6 +1,5 @@
 package com.felipeduan.atendimento.shared.tenancy;
 
-import jakarta.persistence.EntityManager;
 import java.util.UUID;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -13,10 +12,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Order(1)
 public class TenantRlsAspect {
 
-  private final EntityManager entityManager;
+  private final TenantRlsConfigurer tenantRlsConfigurer;
 
-  public TenantRlsAspect(EntityManager entityManager) {
-    this.entityManager = entityManager;
+  public TenantRlsAspect(TenantRlsConfigurer tenantRlsConfigurer) {
+    this.tenantRlsConfigurer = tenantRlsConfigurer;
   }
 
   @Before("@annotation(transactional) || @within(transactional)")
@@ -25,9 +24,6 @@ public class TenantRlsAspect {
   }
 
   private void definirValorRls(UUID tenantId) {
-    entityManager
-        .createNativeQuery("SELECT set_config('app.tenant_id', :tenantId, true)")
-        .setParameter("tenantId", tenantId.toString())
-        .getSingleResult();
+    tenantRlsConfigurer.aplicar(tenantId);
   }
 }
