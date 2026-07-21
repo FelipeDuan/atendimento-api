@@ -30,7 +30,7 @@ public class EmpresaService {
     validarCnpjDisponivel(request.cnpj());
 
     Empresa empresa = salvarEmpresa(request);
-    Usuario admin = resolverAdminInicial(request.adminInicial(), empresa.getId());
+    Usuario admin = resolverAdminInicial(request.administradorInicial(), empresa.getId());
     vincularAdminNaEmpresa(empresa.getId(), admin.getId());
 
     return empresaMapper.toResponse(empresa, admin);

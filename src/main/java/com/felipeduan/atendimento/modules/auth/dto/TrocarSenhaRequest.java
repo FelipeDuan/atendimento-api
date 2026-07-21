@@ -2,4 +2,6 @@ package com.felipeduan.atendimento.modules.auth.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record TrocarSenhaRequest(@NotBlank String senhaAtual, @NotBlank String novaSenha) {}
+public record TrocarSenhaRequest(
+    @NotBlank(message = "A senha atual é obrigatória") String senhaAtual,
+    @NotBlank(message = "A nova senha é obrigatória") String novaSenha) {}
