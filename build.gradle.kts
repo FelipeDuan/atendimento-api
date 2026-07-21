@@ -29,6 +29,7 @@ dependencies {
 	implementation("org.flywaydb:flyway-database-postgresql")
 	implementation("org.springframework.boot:spring-boot-starter-aspectj")
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-scalar:3.0.3")
+	implementation("org.bouncycastle:bcprov-jdk18on:1.79")
 	compileOnly("org.projectlombok:lombok")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	developmentOnly("org.springframework.boot:spring-boot-docker-compose")
