@@ -34,7 +34,7 @@ jobs:
           java-version: "25"
           distribution: temurin
           cache: gradle
-      - run: ./gradlew test --no-daemon
+      - run: ./gradlew test spotlessCheck checkstyleMain checkstyleTest --no-daemon
 
   build-jar:
     name: Build bootJar
