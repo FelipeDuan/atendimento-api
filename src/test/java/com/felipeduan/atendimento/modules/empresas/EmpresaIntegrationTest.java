@@ -3,6 +3,9 @@ package com.felipeduan.atendimento.modules.empresas;
 import static com.felipeduan.atendimento.support.EmpresaHttpSupport.cnpjUnico;
 import static com.felipeduan.atendimento.support.EmpresaHttpSupport.corpoCriarEmpresa;
 import static com.felipeduan.atendimento.support.EmpresaHttpSupport.postCriarEmpresa;
+import static com.felipeduan.atendimento.support.PlatformAdminTestSupport.EMAIL;
+import static com.felipeduan.atendimento.support.PlatformAdminTestSupport.NOME;
+import static com.felipeduan.atendimento.support.PlatformAdminTestSupport.SENHA;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -32,10 +35,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 @AutoConfigureMockMvc
 class EmpresaIntegrationTest extends AbstractIntegrationTest {
 
-  private static final String PLATFORM_EMAIL = "admin-teste@plataforma.local";
-  private static final String PLATFORM_SENHA = "senha-forte-de-teste";
-  private static final String PLATFORM_NOME = "Admin Teste";
-
   @Autowired MockMvc mockMvc;
   @Autowired JwtService jwtService;
   @Autowired AdministradorPlataformaRepository administradorPlataformaRepository;
@@ -52,11 +51,7 @@ class EmpresaIntegrationTest extends AbstractIntegrationTest {
         empresaRepository, usuarioRepository, entityManager, transactionTemplate);
     administradorPlataformaRepository.deleteAll();
     PlatformAdminTestSupport.salvarAdministrador(
-        administradorPlataformaRepository,
-        passwordEncoder,
-        PLATFORM_NOME,
-        PLATFORM_EMAIL,
-        PLATFORM_SENHA);
+        administradorPlataformaRepository, passwordEncoder, NOME, EMAIL, SENHA);
   }
 
   @Test
@@ -193,6 +188,6 @@ class EmpresaIntegrationTest extends AbstractIntegrationTest {
   }
 
   private String obterTokenPlatformAdmin() throws Exception {
-    return PlatformAdminTestSupport.obterToken(mockMvc, PLATFORM_EMAIL, PLATFORM_SENHA);
+    return PlatformAdminTestSupport.obterToken(mockMvc, EMAIL, SENHA);
   }
 }
