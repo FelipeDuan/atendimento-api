@@ -10,14 +10,18 @@ import com.felipeduan.atendimento.modules.auth.exceptions.LoginCredenciaisInvali
 import com.felipeduan.atendimento.modules.auth.exceptions.SemAcessoEmpresaException;
 import com.felipeduan.atendimento.modules.auth.exceptions.SemVinculoAtivoException;
 import com.felipeduan.atendimento.modules.empresas.EmpresaService;
+import com.felipeduan.atendimento.modules.empresas.dto.EmpresaResumoResponse;
 import com.felipeduan.atendimento.modules.usuarios.Usuario;
-import com.felipeduan.atendimento.modules.usuarios.UsuarioRepository;
+import com.felipeduan.atendimento.modules.usuarios.UsuarioService;
 import com.felipeduan.atendimento.modules.vinculos.UsuarioEmpresa;
 import com.felipeduan.atendimento.modules.vinculos.VinculoService;
 import com.felipeduan.atendimento.shared.security.JwtService;
 import com.felipeduan.atendimento.shared.security.Roles;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,7 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AuthService {
 
-  private final UsuarioRepository usuarioRepository;
+  private final UsuarioService usuarioService;
   private final PasswordEncoder passwordEncoder;
   private final JwtService jwtService;
   private final VinculoService vinculoService;
@@ -38,8 +42,8 @@ public class AuthService {
   @Transactional
   public LoginResponse login(LoginRequest request) {
     Usuario usuario =
-        usuarioRepository
-            .findByEmail(request.email())
+        usuarioService
+            .buscarPorEmail(request.email())
             .filter(u -> passwordEncoder.matches(request.senha(), u.getSenhaHash()))
             .orElseThrow(LoginCredenciaisInvalidasException::new);
 
@@ -60,7 +64,7 @@ public class AuthService {
     UUID usuarioId = usuarioAutenticadoId();
 
     Usuario usuario =
-        usuarioRepository.findById(usuarioId).orElseThrow(LoginCredenciaisInvalidasException::new);
+        usuarioService.buscarPorId(usuarioId).orElseThrow(LoginCredenciaisInvalidasException::new);
 
     if (!usuario.isDeveTrocarSenha()) {
       throw new SemAcessoEmpresaException();
@@ -71,7 +75,7 @@ public class AuthService {
     }
 
     usuario.alterarSenha(passwordEncoder.encode(request.novaSenha()));
-    usuarioRepository.save(usuario);
+    usuarioService.salvar(usuario);
 
     return emitirTokenPosAutenticacao(usuario);
   }
@@ -81,7 +85,7 @@ public class AuthService {
     UUID usuarioId = usuarioAutenticadoId();
 
     Usuario usuario =
-        usuarioRepository.findById(usuarioId).orElseThrow(LoginCredenciaisInvalidasException::new);
+        usuarioService.buscarPorId(usuarioId).orElseThrow(LoginCredenciaisInvalidasException::new);
 
     if (usuario.isDeveTrocarSenha()) {
       throw new SemAcessoEmpresaException();
@@ -93,7 +97,7 @@ public class AuthService {
             .orElseThrow(SemAcessoEmpresaException::new);
 
     usuario.registrarNovoVinculo(request.empresaId());
-    usuarioRepository.save(usuario);
+    usuarioService.salvar(usuario);
 
     String token =
         jwtService.emitirToken(
@@ -113,7 +117,7 @@ public class AuthService {
     UsuarioEmpresa vinculoPadrao = vinculoDoTenant(vinculos, empresaPadrao);
 
     usuario.registrarNovoVinculo(empresaPadrao);
-    usuarioRepository.save(usuario);
+    usuarioService.salvar(usuario);
 
     String token =
         jwtService.emitirToken(
@@ -128,14 +132,28 @@ public class AuthService {
   }
 
   private List<EmpresaVinculadaResponse> montarEmpresasVinculadas(List<UsuarioEmpresa> vinculos) {
+    Map<UUID, EmpresaResumoResponse> empresasPorId = indexarEmpresasDosVinculos(vinculos);
+
     return vinculos.stream()
-        .map(
-            vinculo -> {
-              var empresa = empresaService.buscarPorId(vinculo.getId().empresaId());
-              return new EmpresaVinculadaResponse(
-                  empresa.getId(), empresa.getNome(), vinculo.getPerfil());
-            })
+        .filter(vinculo -> empresasPorId.containsKey(vinculo.getId().empresaId()))
+        .map(vinculo -> montarVinculada(vinculo, empresasPorId))
         .toList();
+  }
+
+  private Map<UUID, EmpresaResumoResponse> indexarEmpresasDosVinculos(
+      List<UsuarioEmpresa> vinculos) {
+
+    List<UUID> empresaIds = vinculos.stream().map(vinculo -> vinculo.getId().empresaId()).toList();
+
+    return empresaService.buscarResumosPorIds(empresaIds).stream()
+        .collect(Collectors.toMap(EmpresaResumoResponse::id, Function.identity()));
+  }
+
+  private EmpresaVinculadaResponse montarVinculada(
+      UsuarioEmpresa vinculo, Map<UUID, EmpresaResumoResponse> empresasPorId) {
+
+    EmpresaResumoResponse empresa = empresasPorId.get(vinculo.getId().empresaId());
+    return new EmpresaVinculadaResponse(empresa.id(), empresa.nome(), vinculo.getPerfil());
   }
 
   private UsuarioEmpresa vinculoDoTenant(List<UsuarioEmpresa> vinculos, UUID empresaId) {

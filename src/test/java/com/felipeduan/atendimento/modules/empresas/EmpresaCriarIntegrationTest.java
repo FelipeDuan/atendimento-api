@@ -3,56 +3,27 @@ package com.felipeduan.atendimento.modules.empresas;
 import static com.felipeduan.atendimento.support.EmpresaHttpSupport.cnpjUnico;
 import static com.felipeduan.atendimento.support.EmpresaHttpSupport.corpoCriarEmpresa;
 import static com.felipeduan.atendimento.support.EmpresaHttpSupport.postCriarEmpresa;
-import static com.felipeduan.atendimento.support.PlatformAdminTestSupport.EMAIL;
-import static com.felipeduan.atendimento.support.PlatformAdminTestSupport.NOME;
-import static com.felipeduan.atendimento.support.PlatformAdminTestSupport.SENHA;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.felipeduan.atendimento.AbstractIntegrationTest;
-import com.felipeduan.atendimento.modules.platformadmin.AdministradorPlataformaRepository;
-import com.felipeduan.atendimento.modules.usuarios.UsuarioRepository;
 import com.felipeduan.atendimento.modules.vinculos.UsuarioEmpresaRepository;
 import com.felipeduan.atendimento.shared.security.JwtService;
 import com.felipeduan.atendimento.shared.security.Roles;
-import com.felipeduan.atendimento.support.LimpezaDadosTestSupport;
-import com.felipeduan.atendimento.support.PlatformAdminTestSupport;
 import com.felipeduan.atendimento.support.RlsTestSupport;
 import com.jayway.jsonpath.JsonPath;
-import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.UUID;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.transaction.support.TransactionTemplate;
 
 @AutoConfigureMockMvc
-class EmpresaIntegrationTest extends AbstractIntegrationTest {
+class EmpresaCriarIntegrationTest extends AbstractEmpresaIntegrationTest {
 
-  @Autowired MockMvc mockMvc;
   @Autowired JwtService jwtService;
-  @Autowired AdministradorPlataformaRepository administradorPlataformaRepository;
-  @Autowired EmpresaRepository empresaRepository;
-  @Autowired UsuarioRepository usuarioRepository;
   @Autowired UsuarioEmpresaRepository usuarioEmpresaRepository;
-  @Autowired PasswordEncoder passwordEncoder;
-  @Autowired TransactionTemplate transactionTemplate;
-  @Autowired EntityManager entityManager;
-
-  @BeforeEach
-  void prepararDados() {
-    LimpezaDadosTestSupport.limparDadosNegocio(
-        empresaRepository, usuarioRepository, entityManager, transactionTemplate);
-    administradorPlataformaRepository.deleteAll();
-    PlatformAdminTestSupport.salvarAdministrador(
-        administradorPlataformaRepository, passwordEncoder, NOME, EMAIL, SENHA);
-  }
 
   @Test
   void deveRetornar401_semToken() throws Exception {
@@ -199,9 +170,5 @@ class EmpresaIntegrationTest extends AbstractIntegrationTest {
             RlsTestSupport.contarVinculosDaEmpresa(
                 empresaIdSegunda, usuarioEmpresaRepository, entityManager, transactionTemplate))
         .isEqualTo(1);
-  }
-
-  private String obterTokenPlatformAdmin() throws Exception {
-    return PlatformAdminTestSupport.obterToken(mockMvc, EMAIL, SENHA);
   }
 }

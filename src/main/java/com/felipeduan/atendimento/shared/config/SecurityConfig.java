@@ -37,6 +37,10 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers(HttpMethod.POST, "/empresas")
                     .hasAuthority(Roles.PLATFORM_ADMIN)
+                    .requestMatchers(HttpMethod.GET, "/empresas", "/empresas/inativas")
+                    .hasAuthority(Roles.PLATFORM_ADMIN)
+                    .requestMatchers(HttpMethod.DELETE, "/empresas/*")
+                    .hasAuthority(Roles.PLATFORM_ADMIN)
                     .requestMatchers(HttpMethod.POST, "/auth/trocar-senha")
                     .hasAuthority(Roles.TROCAR_SENHA)
                     .requestMatchers(
@@ -59,6 +63,10 @@ public class SecurityConfig {
         .authorizeHttpRequests(
             auth ->
                 auth.requestMatchers(HttpMethod.POST, "/empresas")
+                    .hasAuthority(Roles.PLATFORM_ADMIN)
+                    .requestMatchers(HttpMethod.GET, "/empresas", "/empresas/inativas")
+                    .hasAuthority(Roles.PLATFORM_ADMIN)
+                    .requestMatchers(HttpMethod.DELETE, "/empresas/*")
                     .hasAuthority(Roles.PLATFORM_ADMIN)
                     .requestMatchers(HttpMethod.POST, "/auth/trocar-senha")
                     .hasAuthority(Roles.TROCAR_SENHA)

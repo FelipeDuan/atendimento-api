@@ -1,18 +1,22 @@
 package com.felipeduan.atendimento.modules.empresas;
 
 import com.felipeduan.atendimento.modules.empresas.dto.AdminInicialRequest;
+import com.felipeduan.atendimento.modules.empresas.dto.AtualizarEmpresaRequest;
 import com.felipeduan.atendimento.modules.empresas.dto.CriarEmpresaRequest;
 import com.felipeduan.atendimento.modules.empresas.dto.EmpresaResponse;
+import com.felipeduan.atendimento.modules.empresas.dto.EmpresaResumoResponse;
 import com.felipeduan.atendimento.modules.empresas.exception.CnpjJaCadastradoException;
 import com.felipeduan.atendimento.modules.empresas.exception.EmpresaNaoEncontradaException;
 import com.felipeduan.atendimento.modules.usuarios.Usuario;
 import com.felipeduan.atendimento.modules.usuarios.UsuarioService;
 import com.felipeduan.atendimento.modules.vinculos.VinculoService;
+import com.felipeduan.atendimento.shared.dto.PageResponse;
 import com.felipeduan.atendimento.shared.tenancy.TenantContext;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class EmpresaService {
 
   private final EmpresaRepository empresaRepository;
+  private final EmpresaRegistroRepository empresaRegistroRepository;
   private final UsuarioService usuarioService;
   private final VinculoService vinculoService;
   private final EmpresaMapper empresaMapper;
@@ -36,8 +41,64 @@ public class EmpresaService {
     return empresaMapper.toResponse(empresa, admin);
   }
 
+  @Transactional(readOnly = true)
+  public PageResponse<EmpresaResumoResponse> listarAtivas(Pageable pageable) {
+    return PageResponse.of(
+        empresaRepository.findAtivas(pageable).map(empresaMapper::toResumoResponse));
+  }
+
+  @Transactional(readOnly = true)
+  public PageResponse<EmpresaResumoResponse> listarInativas(Pageable pageable) {
+    return PageResponse.of(
+        empresaRegistroRepository
+            .findByStatus(EmpresaStatus.INATIVA, pageable)
+            .map(empresaMapper::toResumoResponse));
+  }
+
+  @Transactional(readOnly = true)
+  public List<EmpresaResumoResponse> buscarResumosPorIds(Collection<UUID> ids) {
+    if (ids.isEmpty()) {
+      return List.of();
+    }
+
+    return empresaRegistroRepository.findByIdIn(ids).stream()
+        .map(empresaMapper::toResumoResponse)
+        .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public List<UUID> listarIdsEmpresasAtivas() {
+    return empresaRepository.findIdsAtivas();
+  }
+
+  @Transactional(readOnly = true)
+  public EmpresaResponse buscar(UUID id) {
+    return empresaMapper.toResponse(buscarPorId(id));
+  }
+
+  @Transactional(readOnly = true)
+  public Empresa buscarPorId(UUID id) {
+    return empresaRepository.findById(id).orElseThrow(() -> new EmpresaNaoEncontradaException(id));
+  }
+
+  @Transactional
+  public EmpresaResponse atualizar(UUID id, AtualizarEmpresaRequest request) {
+    Empresa empresa = buscarPorId(id);
+    empresa.atualizar(request.nome(), request.email(), request.phoneNumberId());
+    return empresaMapper.toResponse(empresaRepository.save(empresa));
+  }
+
+  @Transactional
+  public void inativar(UUID id) {
+    Empresa empresa = buscarPorId(id);
+    empresa.inativar();
+    empresaRepository.save(empresa);
+  }
+
+  // abaixo são passos privados
+
   private void validarCnpjDisponivel(String cnpj) {
-    if (empresaRepository.existsByCnpj(cnpj)) {
+    if (empresaRegistroRepository.existsByCnpj(cnpj)) {
       throw new CnpjJaCadastradoException();
     }
   }
@@ -54,21 +115,5 @@ public class EmpresaService {
   private void vincularAdminNaEmpresa(UUID empresaId, UUID usuarioId) {
     TenantContext.withTenantId(
         empresaId, () -> vinculoService.vincularComoAdministrador(usuarioId, empresaId));
-  }
-
-  @Transactional(readOnly = true)
-  public List<UUID> listarIdsEmpresasAtivas() {
-    List<UUID> empresasAtivas = new ArrayList<>();
-
-    for (Empresa empresa : empresaRepository.findByStatus(EmpresaStatus.ATIVA)) {
-      empresasAtivas.add(empresa.getId());
-    }
-
-    return empresasAtivas;
-  }
-
-  @Transactional(readOnly = true)
-  public Empresa buscarPorId(UUID id) {
-    return empresaRepository.findById(id).orElseThrow(() -> new EmpresaNaoEncontradaException(id));
   }
 }
