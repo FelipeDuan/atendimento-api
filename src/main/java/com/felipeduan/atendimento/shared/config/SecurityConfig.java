@@ -22,7 +22,11 @@ public class SecurityConfig {
         .authorizeHttpRequests(
             auth ->
                 auth.requestMatchers(
-                        "/auth/plataforma/login", "/v3/api-docs/**", "/scalar", "/scalar/**")
+                        "/auth/plataforma/login",
+                        "/actuator/health",
+                        "/v3/api-docs/**",
+                        "/scalar",
+                        "/scalar/**")
                     .permitAll()
                     .anyRequest()
                     .authenticated())
@@ -35,7 +39,7 @@ public class SecurityConfig {
     return baseChain(http)
         .authorizeHttpRequests(
             auth ->
-                auth.requestMatchers("/auth/plataforma/login")
+                auth.requestMatchers("/auth/plataforma/login", "/actuator/health")
                     .permitAll()
                     .anyRequest()
                     .authenticated())

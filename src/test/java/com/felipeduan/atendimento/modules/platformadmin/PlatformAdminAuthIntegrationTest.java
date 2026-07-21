@@ -28,6 +28,7 @@ class PlatformAdminAuthIntegrationTest extends AbstractIntegrationTest {
 
   private static final String LOGIN_PATH = "/auth/plataforma/login";
   private static final String HEALTH_PATH = "/actuator/health";
+  private static final String ENDPOINT_PROTEGIDO_PATH = "/empresas";
 
   private static final String EMAIL = "admin-teste@plataforma.local";
   private static final String SENHA = "senha-forte-de-teste";
@@ -70,25 +71,29 @@ class PlatformAdminAuthIntegrationTest extends AbstractIntegrationTest {
   }
 
   @Test
+  void deveRetornarHealthPublico_semToken() throws Exception {
+    assertHealthOk(performGetHealth());
+  }
+
+  @Test
   void deveAcessarEndpointProtegido_comTokenValido() throws Exception {
     String token = obterAccessToken();
-    ResultActions resposta = performGetHealthComBearer(token);
 
-    assertHealthOk(resposta);
+    mockMvc
+        .perform(get(ENDPOINT_PROTEGIDO_PATH).header("Authorization", "Bearer " + token))
+        .andExpect(status().isNotFound());
   }
 
   @Test
   void deveRetornar401_semToken() throws Exception {
-    ResultActions resposta = performGetHealth();
-
-    assertUnauthorized(resposta);
+    assertUnauthorized(mockMvc.perform(get(ENDPOINT_PROTEGIDO_PATH)));
   }
 
   @Test
   void deveRetornar401_comTokenInvalido() throws Exception {
-    ResultActions resposta = performGetHealthComBearer("token-invalido");
-
-    assertUnauthorized(resposta);
+    assertUnauthorized(
+        mockMvc.perform(
+            get(ENDPOINT_PROTEGIDO_PATH).header("Authorization", "Bearer token-invalido")));
   }
 
   @Test
@@ -136,10 +141,6 @@ class PlatformAdminAuthIntegrationTest extends AbstractIntegrationTest {
 
   private ResultActions performGetHealth() throws Exception {
     return mockMvc.perform(get(HEALTH_PATH));
-  }
-
-  private ResultActions performGetHealthComBearer(String token) throws Exception {
-    return mockMvc.perform(get(HEALTH_PATH).header("Authorization", "Bearer " + token));
   }
 
   private void assertTokenPlatformAdmin(String token) {
