@@ -35,9 +35,7 @@ public final class PlatformAdminTestSupport {
   public static ResultActions performLogin(MockMvc mockMvc, String email, String senha)
       throws Exception {
     return mockMvc.perform(
-        post(LOGIN_PATH)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(corpoLogin(email, senha)));
+        post(LOGIN_PATH).contentType(MediaType.APPLICATION_JSON).content(corpoLogin(email, senha)));
   }
 
   public static String obterToken(MockMvc mockMvc, String email, String senha) throws Exception {
