@@ -2,7 +2,11 @@ package com.felipeduan.atendimento;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
+import com.felipeduan.atendimento.shared.config.JwtProperties;
+
+@EnableConfigurationProperties(JwtProperties.class)
 @SpringBootApplication
 public class AtendimentoApplication {
 
