@@ -13,7 +13,6 @@ public interface EmpresaMapper {
   @Mapping(target = "nome", source = "empresa.nome")
   @Mapping(target = "cnpj", source = "empresa.cnpj")
   @Mapping(target = "email", source = "empresa.email")
-  @Mapping(target = "status", source = "empresa.status")
   @Mapping(target = "dataCriacao", source = "empresa.dataCriacao")
   @Mapping(target = "adminInicial", source = "usuario")
   EmpresaResponse toResponse(Empresa empresa, Usuario usuario);
