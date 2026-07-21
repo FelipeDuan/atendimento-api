@@ -31,6 +31,15 @@ public final class EmpresaHttpSupport {
     return mockMvc.perform(comAutenticacao(get(EMPRESAS_PATH + "/" + empresaId), token));
   }
 
+  public static ResultActions listarEmpresas(MockMvc mockMvc, String token) throws Exception {
+    return mockMvc.perform(comAutenticacao(get(EMPRESAS_PATH), token));
+  }
+
+  public static ResultActions listarEmpresasInativas(MockMvc mockMvc, String token)
+      throws Exception {
+    return mockMvc.perform(comAutenticacao(get(EMPRESAS_PATH + "/inativas"), token));
+  }
+
   public static ResultActions putEmpresa(
       MockMvc mockMvc, String token, UUID empresaId, String corpo) throws Exception {
     return mockMvc.perform(
