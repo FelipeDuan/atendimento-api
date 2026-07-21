@@ -25,6 +25,10 @@ public final class LimpezaDadosTestSupport {
           status -> {
             RlsTestSupport.definirTenant(entityManager, empresaId);
             entityManager
+                .createNativeQuery("DELETE FROM contato WHERE empresa_id = :empresaId")
+                .setParameter("empresaId", empresaId)
+                .executeUpdate();
+            entityManager
                 .createNativeQuery("DELETE FROM usuario_empresa WHERE empresa_id = :empresaId")
                 .setParameter("empresaId", empresaId)
                 .executeUpdate();
