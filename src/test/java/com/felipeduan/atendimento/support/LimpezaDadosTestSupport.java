@@ -1,9 +1,9 @@
 package com.felipeduan.atendimento.support;
 
-import com.felipeduan.atendimento.modules.empresas.Empresa;
 import com.felipeduan.atendimento.modules.empresas.EmpresaRepository;
 import com.felipeduan.atendimento.modules.usuarios.UsuarioRepository;
 import jakarta.persistence.EntityManager;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -19,8 +19,12 @@ public final class LimpezaDadosTestSupport {
       EntityManager entityManager,
       TransactionTemplate transactionTemplate) {
 
-    for (Empresa empresa : empresaRepository.findAll()) {
-      UUID empresaId = empresa.getId();
+    @SuppressWarnings("unchecked")
+    List<Object> idsEmpresa =
+        entityManager.createNativeQuery("SELECT id FROM empresa").getResultList();
+
+    for (Object rawId : idsEmpresa) {
+      UUID empresaId = rawId instanceof UUID uuid ? uuid : UUID.fromString(rawId.toString());
       transactionTemplate.executeWithoutResult(
           status -> {
             RlsTestSupport.definirTenant(entityManager, empresaId);
@@ -42,7 +46,7 @@ public final class LimpezaDadosTestSupport {
                   "UPDATE usuario SET last_empresa_id = NULL WHERE last_empresa_id IS NOT NULL")
               .executeUpdate();
           usuarioRepository.deleteAllInBatch();
-          empresaRepository.deleteAllInBatch();
+          entityManager.createNativeQuery("DELETE FROM empresa").executeUpdate();
         });
   }
 }
