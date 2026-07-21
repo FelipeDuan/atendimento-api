@@ -7,13 +7,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authorization.AuthorizationDecision;
+import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 
 @Configuration
 @EnableWebSecurity
@@ -33,7 +37,10 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers(HttpMethod.POST, "/empresas")
                     .hasAuthority(Roles.PLATFORM_ADMIN)
+                    .requestMatchers(HttpMethod.POST, "/auth/trocar-senha")
+                    .hasAuthority(Roles.TROCAR_SENHA)
                     .requestMatchers(
+                        "/auth/login",
                         "/auth/plataforma/login",
                         "/actuator/health",
                         "/v3/api-docs/**",
@@ -41,7 +48,7 @@ public class SecurityConfig {
                         "/scalar/**")
                     .permitAll()
                     .anyRequest()
-                    .authenticated())
+                    .access(negarTokenSomenteTrocarSenha()))
         .build();
   }
 
@@ -53,10 +60,12 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers(HttpMethod.POST, "/empresas")
                     .hasAuthority(Roles.PLATFORM_ADMIN)
-                    .requestMatchers("/auth/plataforma/login", "/actuator/health")
+                    .requestMatchers(HttpMethod.POST, "/auth/trocar-senha")
+                    .hasAuthority(Roles.TROCAR_SENHA)
+                    .requestMatchers("/auth/login", "/auth/plataforma/login", "/actuator/health")
                     .permitAll()
                     .anyRequest()
-                    .authenticated())
+                    .access(negarTokenSomenteTrocarSenha()))
         .build();
   }
 
@@ -78,5 +87,23 @@ public class SecurityConfig {
     JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
     converter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
     return converter;
+  }
+
+  private AuthorizationManager<RequestAuthorizationContext> negarTokenSomenteTrocarSenha() {
+    return (authentication, context) -> {
+      if (authentication.get() == null || !authentication.get().isAuthenticated()) {
+        return new AuthorizationDecision(false);
+      }
+
+      boolean somenteTrocarSenha = true;
+      for (GrantedAuthority authority : authentication.get().getAuthorities()) {
+        if (!Roles.TROCAR_SENHA.equals(authority.getAuthority())) {
+          somenteTrocarSenha = false;
+          break;
+        }
+      }
+
+      return new AuthorizationDecision(!somenteTrocarSenha);
+    };
   }
 }

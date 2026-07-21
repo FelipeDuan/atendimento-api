@@ -1,6 +1,6 @@
 package com.felipeduan.atendimento.modules.empresas.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.felipeduan.atendimento.modules.empresas.EmpresaStatus;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -9,6 +9,6 @@ public record EmpresaResponse(
     String nome,
     String cnpj,
     String email,
-    String status,
+    EmpresaStatus status,
     Instant dataCriacao,
-    @JsonProperty("administradorInicial") AdminInicialResponse adminInicial) {}
+    AdminInicialResponse administradorInicial) {}
