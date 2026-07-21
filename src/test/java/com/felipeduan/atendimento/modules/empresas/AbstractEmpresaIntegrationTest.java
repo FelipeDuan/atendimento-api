@@ -14,12 +14,12 @@ import com.felipeduan.atendimento.modules.usuarios.UsuarioRepository;
 import com.felipeduan.atendimento.support.LimpezaDadosTestSupport;
 import com.felipeduan.atendimento.support.PlatformAdminTestSupport;
 import com.jayway.jsonpath.JsonPath;
+import jakarta.persistence.EntityManager;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
-import jakarta.persistence.EntityManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 public abstract class AbstractEmpresaIntegrationTest extends AbstractIntegrationTest {
