@@ -4,9 +4,11 @@ import com.felipeduan.atendimento.shared.config.JwtProperties;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
@@ -43,5 +45,10 @@ public class JwtService {
 
     JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
     return jwtEncoder.encode(JwtEncoderParameters.from(header, claims.build())).getTokenValue();
+  }
+
+  public Optional<UUID> lerTenantId(Jwt jwt) {
+    var tenantId = jwt.getClaimAsString(CLAIM_TENANT_ID);
+    return Optional.ofNullable(tenantId).filter(id -> !id.isBlank()).map(UUID::fromString);
   }
 }

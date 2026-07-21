@@ -1,19 +1,29 @@
 package com.felipeduan.atendimento.shared.config;
 
 import com.felipeduan.atendimento.shared.security.JwtService;
+import com.felipeduan.atendimento.shared.security.Roles;
+import com.felipeduan.atendimento.shared.security.TenantContextFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+  private final TenantContextFilter tenantContextFilter;
+
+  public SecurityConfig(TenantContextFilter tenantContextFilter) {
+    this.tenantContextFilter = tenantContextFilter;
+  }
 
   @Bean
   @Profile("dev")
@@ -21,7 +31,9 @@ public class SecurityConfig {
     return baseChain(http)
         .authorizeHttpRequests(
             auth ->
-                auth.requestMatchers(
+                auth.requestMatchers(HttpMethod.POST, "/empresas")
+                    .hasAuthority(Roles.PLATFORM_ADMIN)
+                    .requestMatchers(
                         "/auth/plataforma/login",
                         "/actuator/health",
                         "/v3/api-docs/**",
@@ -39,7 +51,9 @@ public class SecurityConfig {
     return baseChain(http)
         .authorizeHttpRequests(
             auth ->
-                auth.requestMatchers("/auth/plataforma/login", "/actuator/health")
+                auth.requestMatchers(HttpMethod.POST, "/empresas")
+                    .hasAuthority(Roles.PLATFORM_ADMIN)
+                    .requestMatchers("/auth/plataforma/login", "/actuator/health")
                     .permitAll()
                     .anyRequest()
                     .authenticated())
@@ -52,7 +66,8 @@ public class SecurityConfig {
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .oauth2ResourceServer(
             oauth2 ->
-                oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
+                oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
+        .addFilterAfter(tenantContextFilter, BearerTokenAuthenticationFilter.class);
   }
 
   private JwtAuthenticationConverter jwtAuthenticationConverter() {

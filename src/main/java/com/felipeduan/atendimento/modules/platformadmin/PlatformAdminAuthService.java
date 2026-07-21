@@ -6,25 +6,18 @@ import com.felipeduan.atendimento.modules.platformadmin.exception.CredenciaisInv
 import com.felipeduan.atendimento.shared.security.JwtService;
 import com.felipeduan.atendimento.shared.security.Roles;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class PlatformAdminAuthService {
 
   private final AdministradorPlataformaRepository repository;
   private final PasswordEncoder passwordEncoder;
   private final JwtService jwtService;
-
-  public PlatformAdminAuthService(
-      AdministradorPlataformaRepository repository,
-      PasswordEncoder passwordEncoder,
-      JwtService jwtService) {
-    this.repository = repository;
-    this.passwordEncoder = passwordEncoder;
-    this.jwtService = jwtService;
-  }
 
   @Transactional(readOnly = true)
   public LoginPlataformaResponse autenticar(LoginPlataformaRequest request) {
