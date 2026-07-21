@@ -1,6 +1,7 @@
 package com.felipeduan.atendimento.modules.usuarios;
 
 import com.felipeduan.atendimento.modules.usuarios.exception.EmailExistenteSenhaInvalidaException;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,6 +14,21 @@ public class UsuarioService {
 
   private final UsuarioRepository repository;
   private final PasswordEncoder passwordEncoder;
+
+  @Transactional(readOnly = true)
+  public Optional<Usuario> buscarPorEmail(String email) {
+    return repository.findByEmail(email);
+  }
+
+  @Transactional(readOnly = true)
+  public Optional<Usuario> buscarPorId(UUID id) {
+    return repository.findById(id);
+  }
+
+  @Transactional
+  public Usuario salvar(Usuario usuario) {
+    return repository.save(usuario);
+  }
 
   @Transactional
   public Usuario resolverOuCriarAdminInicial(
