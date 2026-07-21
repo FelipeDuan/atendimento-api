@@ -1,11 +1,12 @@
 GRADLE := ./gradlew
 TEST ?= com.felipeduan.atendimento
 
-.PHONY: help test test-class boot run build clean format format-check compile
+.PHONY: help test test-fresh test-class boot run build clean format format-check compile
 
 help:
 	@echo "Targets:"
 	@echo "  make test              roda a suíte completa"
+	@echo "  make test-fresh        limpa e roda a suíte completa"
 	@echo "  make test-class TEST=… roda uma classe ou método (@Test)"
 	@echo "  make boot              sobe a API (profile dev)"
 	@echo "  make build             compila e roda testes"
@@ -16,6 +17,9 @@ help:
 
 test:
 	$(GRADLE) test
+
+test-fresh:
+	$(GRADLE) clean test --rerun-tasks --no-build-cache
 
 test-class:
 	$(GRADLE) test --tests "$(TEST)" --rerun-tasks
