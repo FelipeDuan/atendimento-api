@@ -5,12 +5,11 @@ import com.felipeduan.atendimento.modules.empresas.dto.CriarEmpresaRequest;
 import com.felipeduan.atendimento.modules.empresas.dto.EmpresaResponse;
 import com.felipeduan.atendimento.modules.empresas.dto.EmpresaResumoResponse;
 import com.felipeduan.atendimento.shared.dto.PageResponse;
+import com.felipeduan.atendimento.shared.web.Pagination;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -37,22 +36,12 @@ public class EmpresaController {
   }
 
   @GetMapping
-  public PageResponse<EmpresaResumoResponse> listar(
-      @PageableDefault(
-              size = 20,
-              sort = {"dataCriacao", "id"},
-              direction = Sort.Direction.DESC)
-          Pageable pageable) {
+  public PageResponse<EmpresaResumoResponse> listar(@Pagination Pageable pageable) {
     return empresaService.listarAtivas(pageable);
   }
 
   @GetMapping("/inativas")
-  public PageResponse<EmpresaResumoResponse> listarInativas(
-      @PageableDefault(
-              size = 20,
-              sort = {"dataCriacao", "id"},
-              direction = Sort.Direction.DESC)
-          Pageable pageable) {
+  public PageResponse<EmpresaResumoResponse> listarInativas(@Pagination Pageable pageable) {
     return empresaService.listarInativas(pageable);
   }
 

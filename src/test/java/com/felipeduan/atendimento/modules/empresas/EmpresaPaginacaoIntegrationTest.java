@@ -31,6 +31,17 @@ class EmpresaPaginacaoIntegrationTest extends AbstractEmpresaIntegrationTest {
   }
 
   @Test
+  void deveUsarTamanhoPadraoDaAnotacao_quandoClienteNaoInformaSize() throws Exception {
+    criarEmpresaPadrao();
+    String token = obterTokenPlatformAdmin();
+
+    mockMvc
+        .perform(get(EMPRESAS_PATH).header("Authorization", "Bearer " + token))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.size").value(20));
+  }
+
+  @Test
   void deveLimitarTamanhoDaPagina_quandoClienteSolicitaAcimaDoMaximo() throws Exception {
     criarEmpresaPadrao();
     String token = obterTokenPlatformAdmin();
