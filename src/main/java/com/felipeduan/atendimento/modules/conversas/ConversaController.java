@@ -6,6 +6,7 @@ import com.felipeduan.atendimento.modules.conversas.dto.ConversaResponse;
 import com.felipeduan.atendimento.modules.conversas.enums.StatusConversa;
 import com.felipeduan.atendimento.shared.dto.PageResponse;
 import com.felipeduan.atendimento.shared.web.Pagination;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
@@ -32,11 +33,13 @@ public class ConversaController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
+  @Operation(operationId = "abrirConversa")
   public ConversaResponse abrir(@Valid @RequestBody AbrirConversaRequest request) {
     return conversaService.abrirParaContato(request.contatoId());
   }
 
   @GetMapping
+  @Operation(operationId = "listarConversas")
   public PageResponse<ConversaResponse> listar(
       @RequestParam(required = false) StatusConversa status,
       @Pagination(sort = {"ultimaInteracao", "id"}) Pageable pageable) {
@@ -44,11 +47,16 @@ public class ConversaController {
   }
 
   @GetMapping("/{id}")
+  @Operation(operationId = "buscarConversa")
   public ConversaResponse buscar(@PathVariable UUID id) {
     return conversaService.buscar(id);
   }
 
   @PatchMapping("/{id}")
+  @Operation(
+      operationId = "atualizarConversa",
+      summary = "Encerrar ou reabrir conversa",
+      description = "Corpo: {\"acao\":\"ENCERRAR\"} ou {\"acao\":\"REABRIR\"}.")
   public ConversaResponse atualizar(
       @PathVariable UUID id, @Valid @RequestBody AtualizarConversaRequest request) {
 

@@ -84,7 +84,7 @@ public class ContatoService {
   private ContatoResponse criarNovo(CriarContatoRequest request) {
     Contato contato =
         new Contato(
-            tenantAtual(),
+            TenantContext.exigirTenantId(),
             request.nome(),
             request.numeroWhatsapp(),
             request.email(),
@@ -101,7 +101,7 @@ public class ContatoService {
   }
 
   private UUID criarPorNumero(String numeroWhatsapp, String nome) {
-    Contato contato = new Contato(tenantAtual(), nome, numeroWhatsapp, null, null);
+    Contato contato = new Contato(TenantContext.exigirTenantId(), nome, numeroWhatsapp, null, null);
     return repository.save(contato).getId();
   }
 
@@ -109,9 +109,5 @@ public class ContatoService {
     return repository
         .findByIdAndStatus(id, StatusContato.ATIVO)
         .orElseThrow(() -> new ContatoNaoEncontradoException(id));
-  }
-
-  private UUID tenantAtual() {
-    return TenantContext.getTenantId().orElseThrow(IllegalStateException::new);
   }
 }

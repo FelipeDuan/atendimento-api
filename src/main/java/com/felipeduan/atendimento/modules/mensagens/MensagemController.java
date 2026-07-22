@@ -4,6 +4,7 @@ import com.felipeduan.atendimento.modules.mensagens.dto.EnviarMensagemRequest;
 import com.felipeduan.atendimento.modules.mensagens.dto.MensagemResponse;
 import com.felipeduan.atendimento.shared.dto.PageResponse;
 import com.felipeduan.atendimento.shared.web.Pagination;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
@@ -29,6 +30,7 @@ public class MensagemController {
   private final MensagemService mensagemService;
 
   @GetMapping
+  @Operation(operationId = "listarMensagens")
   public PageResponse<MensagemResponse> listar(
       @RequestParam UUID conversaId,
       @Pagination(
@@ -39,12 +41,14 @@ public class MensagemController {
   }
 
   @GetMapping("/{id}")
+  @Operation(operationId = "buscarMensagem")
   public MensagemResponse buscar(@PathVariable UUID id) {
     return mensagemService.buscar(id);
   }
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
+  @Operation(operationId = "enviarMensagem")
   public MensagemResponse enviar(@Valid @RequestBody EnviarMensagemRequest request) {
     return mensagemService.enviar(request);
   }

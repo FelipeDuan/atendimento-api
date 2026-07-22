@@ -1,6 +1,7 @@
 package com.felipeduan.atendimento.modules.webhook;
 
 import com.felipeduan.atendimento.modules.webhook.exception.AssinaturaWebhookInvalidaException;
+import com.felipeduan.atendimento.shared.config.MetaProperties;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
@@ -8,7 +9,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -19,8 +19,9 @@ public class AssinaturaWebhook {
 
   private final SecretKeySpec chave;
 
-  public AssinaturaWebhook(@Value("${meta.app-secret}") String appSecret) {
-    this.chave = new SecretKeySpec(appSecret.getBytes(StandardCharsets.UTF_8), ALGORITMO);
+  public AssinaturaWebhook(MetaProperties properties) {
+    this.chave =
+        new SecretKeySpec(properties.appSecret().getBytes(StandardCharsets.UTF_8), ALGORITMO);
   }
 
   public void validar(byte[] corpoBruto, String cabecalho) {

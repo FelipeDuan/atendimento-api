@@ -18,6 +18,7 @@ import com.felipeduan.atendimento.modules.usuarios.exception.UsuarioJaVinculadoE
 import com.felipeduan.atendimento.modules.usuarios.exception.UsuarioNaoEncontradoException;
 import com.felipeduan.atendimento.modules.webhook.exception.AssinaturaWebhookInvalidaException;
 import com.felipeduan.atendimento.modules.webhook.exception.PayloadWebhookInvalidoException;
+import com.felipeduan.atendimento.shared.web.OrdenacaoInvalidaException;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.http.HttpHeaders;
@@ -175,6 +176,24 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     ProblemDetail problem =
         ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
     problem.setTitle("Payload inválido");
+    return problem;
+  }
+
+  @ExceptionHandler(OrdenacaoInvalidaException.class)
+  public ProblemDetail handleOrdenacaoInvalida(OrdenacaoInvalidaException ex) {
+    ProblemDetail problem =
+        ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+    problem.setTitle("Ordenação inválida");
+    return problem;
+  }
+
+  @ExceptionHandler(DomainException.class)
+  public ProblemDetail handleDominioSemHandlerEspecifico(DomainException ex) {
+    logger.warn(
+        "DomainException sem @ExceptionHandler específico: " + ex.getClass().getSimpleName(), ex);
+    ProblemDetail problem =
+        ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, ex.getMessage());
+    problem.setTitle("Requisição não pôde ser processada");
     return problem;
   }
 }

@@ -76,7 +76,7 @@ public class ConversaService {
         conversaRepository.findFirstByContatoIdOrderByDataCriacaoDesc(contatoId);
 
     if (ultima.isEmpty()) {
-      return conversaRepository.save(Conversa.abrir(tenantAtual(), contatoId));
+      return conversaRepository.save(Conversa.abrir(TenantContext.exigirTenantId(), contatoId));
     }
 
     Conversa conversa = ultima.get();
@@ -91,9 +91,5 @@ public class ConversaService {
     return conversaRepository
         .findById(id)
         .orElseThrow(() -> new ConversaNaoEncontradaException(id));
-  }
-
-  private UUID tenantAtual() {
-    return TenantContext.getTenantId().orElseThrow(IllegalStateException::new);
   }
 }

@@ -85,7 +85,7 @@ public final class EmpresaHttpSupport {
   }
 
   public static String cnpjUnico() {
-    return java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 14);
+    return UUID.randomUUID().toString().replace("-", "").substring(0, 14);
   }
 
   private static MockHttpServletRequestBuilder comAutenticacao(

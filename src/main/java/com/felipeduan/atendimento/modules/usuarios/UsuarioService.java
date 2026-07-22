@@ -11,11 +11,11 @@ import com.felipeduan.atendimento.modules.vinculos.UsuarioEmpresa;
 import com.felipeduan.atendimento.modules.vinculos.VinculoService;
 import com.felipeduan.atendimento.shared.dto.PageResponse;
 import com.felipeduan.atendimento.shared.tenancy.TenantContext;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -51,16 +51,15 @@ public class UsuarioService {
   public Usuario resolverOuCriarComSenhaTemporaria(
       String nome, String email, String senhaTemporaria, UUID empresaId) {
 
-    var existente = repository.findByEmail(email);
-    if (existente.isPresent()) {
-      return reutilizarContaExistente(existente.get(), senhaTemporaria, empresaId);
-    }
-    return criarContaNova(nome, email, senhaTemporaria, empresaId);
+    return repository
+        .findByEmail(email)
+        .map(existente -> reutilizarContaExistente(existente, senhaTemporaria))
+        .orElseGet(() -> criarContaNova(nome, email, senhaTemporaria, empresaId));
   }
 
   @Transactional
-  public UsuarioResponse cadastrar(CriarUsuarioRequest request) {
-    UUID empresaId = tenantAtual();
+  public UsuarioResponse criar(CriarUsuarioRequest request) {
+    UUID empresaId = TenantContext.exigirTenantId();
     Usuario usuario =
         resolverOuCriarComSenhaTemporaria(
             request.nome(), request.email(), request.senha(), empresaId);
@@ -73,7 +72,8 @@ public class UsuarioService {
   public PageResponse<UsuarioResponse> listar(Pageable pageable) {
     Page<UsuarioEmpresa> vinculos = vinculoService.listarVinculosDoTenant(pageable);
     Map<UUID, Usuario> usuariosPorId = indexarUsuarios(vinculos.getContent());
-    return PageResponse.of(vinculos.map(vinculo -> montarResposta(vinculo, usuariosPorId)));
+    return PageResponse.of(
+        vinculos.map(vinculo -> montarRespostaDaListagem(vinculo, usuariosPorId)));
   }
 
   @Transactional(readOnly = true)
@@ -82,11 +82,7 @@ public class UsuarioService {
         vinculoService
             .buscarVinculo(usuarioId)
             .orElseThrow(() -> new UsuarioNaoEncontradoException(usuarioId));
-    Usuario usuario =
-        repository
-            .findById(usuarioId)
-            .orElseThrow(() -> new UsuarioNaoEncontradoException(usuarioId));
-    return montarResposta(usuario, vinculo);
+    return montarResposta(carregar(usuarioId), vinculo);
   }
 
   @Transactional
@@ -94,22 +90,17 @@ public class UsuarioService {
     UsuarioEmpresa vinculo =
         vinculoService.atualizarVinculo(
             usuarioId, request.perfil().name(), request.status().name());
-    Usuario usuario =
-        repository
-            .findById(usuarioId)
-            .orElseThrow(() -> new UsuarioNaoEncontradoException(usuarioId));
+    Usuario usuario = carregar(usuarioId);
     usuario.atualizarNome(request.nome());
     repository.save(usuario);
     return montarResposta(usuario, vinculo);
   }
 
-  private Usuario reutilizarContaExistente(Usuario usuario, String senha, UUID empresaId) {
-    if (empresaId == null) {
-      throw new IllegalArgumentException("empresaId é obrigatório");
-    }
+  private Usuario reutilizarContaExistente(Usuario usuario, String senha) {
     if (!passwordEncoder.matches(senha, usuario.getSenhaHash())) {
       throw new EmailExistenteSenhaInvalidaException();
     }
+    
     return usuario;
   }
 
@@ -118,20 +109,24 @@ public class UsuarioService {
         Usuario.criarComSenhaTemporaria(nome, email, passwordEncoder.encode(senha), empresaId));
   }
 
+  private Usuario carregar(UUID usuarioId) {
+    return repository
+        .findById(usuarioId)
+        .orElseThrow(() -> new UsuarioNaoEncontradoException(usuarioId));
+  }
+
   private Map<UUID, Usuario> indexarUsuarios(List<UsuarioEmpresa> vinculos) {
-    List<UUID> ids =
-        vinculos.stream().map(v -> v.getId().usuarioId()).distinct().collect(Collectors.toList());
+    List<UUID> ids = vinculos.stream().map(v -> v.getId().usuarioId()).distinct().toList();
     if (ids.isEmpty()) {
       return Map.of();
     }
-    Map<UUID, Usuario> mapa = new HashMap<>();
-    for (Usuario usuario : repository.findByIdIn(ids)) {
-      mapa.put(usuario.getId(), usuario);
-    }
-    return mapa;
+    return repository.findByIdIn(ids).stream()
+        .collect(Collectors.toMap(Usuario::getId, Function.identity()));
   }
 
-  private UsuarioResponse montarResposta(UsuarioEmpresa vinculo, Map<UUID, Usuario> usuariosPorId) {
+  private UsuarioResponse montarRespostaDaListagem(
+      UsuarioEmpresa vinculo, Map<UUID, Usuario> usuariosPorId) {
+
     Usuario usuario = usuariosPorId.get(vinculo.getId().usuarioId());
     if (usuario == null) {
       throw new UsuarioNaoEncontradoException(vinculo.getId().usuarioId());
@@ -147,9 +142,5 @@ public class UsuarioService {
         PerfilUsuario.valueOf(vinculo.getPerfil()),
         StatusVinculo.valueOf(vinculo.getStatus()),
         usuario.getDataCriacao());
-  }
-
-  private UUID tenantAtual() {
-    return TenantContext.getTenantId().orElseThrow(IllegalStateException::new);
   }
 }

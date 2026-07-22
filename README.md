@@ -29,7 +29,7 @@ Monólito modular. Módulos principais:
 | `contatos` | Contatos do tenant (soft delete + reativação) |
 | `conversas` / `mensagens` | Ciclo de vida da conversa e mensagens |
 | `webhook` | Verificação e ingestão Meta (orquestra contatos/mensagens) |
-| `shared` | Segurança, tenancy/RLS, erros RFC 7807, OpenAPI |
+| `shared` | Segurança, tenancy/RLS, erros RFC 9457, OpenAPI |
 
 Demonstração sem frontend dedicado: Scalar no profile `dev` (`/scalar`) e
 `curl`.
@@ -100,19 +100,19 @@ Mensagem em conversa encerrada → **409**.
 
 ## Multi-tenancy e segurança
 
-- O tenant vem do claim `tenant_id` assinado no JWT (ADR-0002). Header de
-  tenant não é aceito.
+- O tenant vem do claim `tenant_id` assinado no JWT. Header de tenant não é
+  aceito.
 - No banco: RLS com `ENABLE` e `FORCE`, policy por
   `current_setting('app.tenant_id', true)`, índice composto com `empresa_id`
-  líder (ADR-0001).
+  líder.
 - Por transação: `set_config(..., true)` via `TenantRlsAspect` (equivalente a
   `SET LOCAL` — evita vazamento pelo pool de conexões).
 - Exceção controlada: o webhook resolve o tenant por `phone_number_id` e
   executa o trabalho sob `TenantContext.withTenantId(...)`.
-- Conta única global (ADR-0010): e-mail único em `usuario`; perfil e status
-  vivem em `usuario_empresa` (RLS). Listagens de usuários passam pelo vínculo.
+- Conta única global: e-mail único em `usuario`; perfil e status vivem em
+  `usuario_empresa` (RLS). Listagens de usuários passam pelo vínculo.
 - Autorização: regras estáticas na `SecurityFilterChain` (`hasAuthority`) e
-  regras dependentes de dado via `PermissionEvaluator` (ADR-0014).
+  regras dependentes de dado via `PermissionEvaluator`.
 
 ## API
 
@@ -126,19 +126,27 @@ Mensagem em conversa encerrada → **409**.
 | Mensagens | `POST`, `GET?conversaId=`, `GET/{id}` | `ADMINISTRADOR` \| `ATENDENTE` |
 | Webhook | `GET` / `POST /webhooks/messages` | público + HMAC |
 
-Listagens usam `PageResponse`. Soft delete por `status` — GET de registro
-inativo retorna **404**.
+Listagens usam `PageResponse`. Ordenar por campo não declarado no endpoint
+devolve **400** listando os campos aceitos.
+
+Soft delete por `status` — GET de registro inativo retorna **404**.
+`GET /usuarios/{id}` de vínculo inativo devolve 404, mas `PUT` continua
+aceitando — é o caminho de reativação (`status: ATIVO`), mesmo princípio do
+`POST /contatos`.
+
+Erros de negócio e de autorização (403) respondem em RFC 9457. O 401 responde
+vazio com `WWW-Authenticate`, conforme a RFC 6750.
 
 ## Trade-offs conscientes
 
-- E-mail único **globalmente**; perfil e status por vínculo (ADR-0010). Troca
-  de contexto via `/auth/switch-tenant`.
-- Registro excluído (soft delete) responde **404** na leitura (ADR-0017).
+- E-mail único **globalmente**; perfil e status por vínculo. Troca de contexto
+  via `/auth/switch-tenant`.
+- Registro excluído (soft delete) responde **404** na leitura.
 - Contato inativo reaparece se o mesmo número voltar via `POST /contatos` ou
   webhook — reativação com os dados novos (filtro explícito; sem
   `@SQLRestriction` na entidade, para permitir escrita na reativação).
 - Mídia (imagem/documento) é registrada como placeholder textual; não há
-  download de binário da Meta neste escopo (ADR-0009).
+  download de binário da Meta neste escopo.
 - Mensagens de saída persistem com `envioPendente: true` até existir envio
   real pela Graph API.
 

@@ -14,12 +14,15 @@ import static com.felipeduan.atendimento.support.UsuarioHttpSupport.getUsuarios;
 import static com.felipeduan.atendimento.support.UsuarioHttpSupport.postUsuario;
 import static com.felipeduan.atendimento.support.UsuarioHttpSupport.putUsuario;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.felipeduan.atendimento.modules.conversas.AbstractConversaIntegrationTest;
 import com.felipeduan.atendimento.support.PlatformAdminTestSupport;
 import com.jayway.jsonpath.JsonPath;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -119,7 +122,7 @@ class UsuarioCrudIntegrationTest extends AbstractConversaIntegrationTest {
             .andReturn()
             .getResponse()
             .getContentAsString();
-    java.util.List<java.util.Map<String, Object>> admins =
+    List<Map<String, Object>> admins =
         JsonPath.read(listagem, "$.content[?(@.perfil == 'ADMINISTRADOR' && @.status == 'ATIVO')]");
     String adminId = admins.getFirst().get("id").toString();
 
@@ -187,19 +190,47 @@ class UsuarioCrudIntegrationTest extends AbstractConversaIntegrationTest {
   }
 
   @Test
-  void atendenteDeveLerUsuariosESerNegadoEmEscrita() throws Exception {
-    String email = "atendente-auth-" + UUID.randomUUID() + "@empresa.local";
-    String senha = "SenhaTemp123!";
-    postUsuario(
+  void deveReativarVinculo_quandoPutDefineStatusAtivo() throws Exception {
+    String email = "reativavel-" + UUID.randomUUID() + "@empresa.local";
+    String json =
+        postUsuario(
+                mockMvc,
+                cenario.tokenAdmin(),
+                corpoCriarUsuario("Reativável", email, "SenhaTemp123!", "ATENDENTE"))
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    String usuarioId = JsonPath.read(json, "$.id");
+
+    putUsuario(
             mockMvc,
             cenario.tokenAdmin(),
-            corpoCriarUsuario("Atendente Auth", email, senha, "ATENDENTE"))
-        .andExpect(status().isCreated());
+            usuarioId,
+            corpoAtualizarUsuario("Reativável", "ATENDENTE", "INATIVO"))
+        .andExpect(status().isOk());
+    getUsuario(mockMvc, cenario.tokenAdmin(), usuarioId).andExpect(status().isNotFound());
 
-    liberarSenhaDefinitiva(usuarioRepository, passwordEncoder, email, senha);
-    String tokenAtendente = obterToken(mockMvc, email, senha);
 
+    putUsuario(
+            mockMvc,
+            cenario.tokenAdmin(),
+            usuarioId,
+            corpoAtualizarUsuario("Reativável", "ATENDENTE", "ATIVO"))
+        .andExpect(status().isOk());
+    getUsuario(mockMvc, cenario.tokenAdmin(), usuarioId).andExpect(status().isOk());
+  }
+
+  @Test
+  void deveListarUsuarios_quandoAtendente() throws Exception {
+    String tokenAtendente = criarAtendenteEObterToken();
     getUsuarios(mockMvc, tokenAtendente).andExpect(status().isOk());
+  }
+
+  @Test
+  void deveNegarCriacao_quandoAtendente() throws Exception {
+    String tokenAtendente = criarAtendenteEObterToken();
+    String senha = "SenhaTemp123!";
 
     postUsuario(
             mockMvc,
@@ -210,20 +241,61 @@ class UsuarioCrudIntegrationTest extends AbstractConversaIntegrationTest {
                 senha,
                 "ATENDENTE"))
         .andExpect(status().isForbidden());
+  }
 
+  @Test
+  void deveNegarAtualizacao_quandoAtendente() throws Exception {
+    String tokenAtendente = criarAtendenteEObterToken();
     String listagem =
         getUsuarios(mockMvc, cenario.tokenAdmin())
             .andExpect(status().isOk())
             .andReturn()
             .getResponse()
             .getContentAsString();
-    java.util.List<java.util.Map<String, Object>> admins =
+    List<Map<String, Object>> admins =
         JsonPath.read(listagem, "$.content[?(@.perfil == 'ADMINISTRADOR' && @.status == 'ATIVO')]");
     String adminId = admins.getFirst().get("id").toString();
 
     putUsuario(
             mockMvc, tokenAtendente, adminId, corpoAtualizarUsuario("Hack", "ATENDENTE", "ATIVO"))
         .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void deveResponderProblemDetail_quandoAtendenteTentaEscrever() throws Exception {
+    String email = "atendente-403-" + UUID.randomUUID() + "@empresa.local";
+    String senha = "SenhaTemp123!";
+    postUsuario(
+            mockMvc,
+            cenario.tokenAdmin(),
+            corpoCriarUsuario("Atendente 403", email, senha, "ATENDENTE"))
+        .andExpect(status().isCreated());
+
+    liberarSenhaDefinitiva(usuarioRepository, passwordEncoder, email, senha);
+    String tokenAtendente = obterToken(mockMvc, email, senha);
+
+    postUsuario(
+            mockMvc,
+            tokenAtendente,
+            corpoCriarUsuario(
+                "Bloqueado", "b-" + UUID.randomUUID() + "@e.local", senha, "ATENDENTE"))
+        .andExpect(status().isForbidden())
+        .andExpect(content().contentTypeCompatibleWith("application/problem+json"))
+        .andExpect(jsonPath("$.status").value(403))
+        .andExpect(jsonPath("$.title").value("Acesso negado"));
+  }
+
+  private String criarAtendenteEObterToken() throws Exception {
+    String email = "atendente-auth-" + UUID.randomUUID() + "@empresa.local";
+    String senha = "SenhaTemp123!";
+    postUsuario(
+            mockMvc,
+            cenario.tokenAdmin(),
+            corpoCriarUsuario("Atendente Auth", email, senha, "ATENDENTE"))
+        .andExpect(status().isCreated());
+
+    liberarSenhaDefinitiva(usuarioRepository, passwordEncoder, email, senha);
+    return obterToken(mockMvc, email, senha);
   }
 
   private String criarTokenTenantB() throws Exception {

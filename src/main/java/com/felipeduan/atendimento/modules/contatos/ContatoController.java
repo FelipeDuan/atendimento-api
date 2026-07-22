@@ -5,6 +5,7 @@ import com.felipeduan.atendimento.modules.contatos.dto.ContatoResponse;
 import com.felipeduan.atendimento.modules.contatos.dto.CriarContatoRequest;
 import com.felipeduan.atendimento.shared.dto.PageResponse;
 import com.felipeduan.atendimento.shared.web.Pagination;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
@@ -32,11 +33,13 @@ public class ContatoController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
+  @Operation(operationId = "criarContato")
   public ContatoResponse criar(@Valid @RequestBody CriarContatoRequest request) {
     return contatoService.criar(request);
   }
 
   @GetMapping
+  @Operation(operationId = "listarContatos")
   public PageResponse<ContatoResponse> listar(
       @Pagination(
               sort = {"nome", "id"},
@@ -46,11 +49,13 @@ public class ContatoController {
   }
 
   @GetMapping("/{id}")
+  @Operation(operationId = "buscarContato")
   public ContatoResponse buscar(@PathVariable UUID id) {
     return contatoService.buscar(id);
   }
 
   @PutMapping("/{id}")
+  @Operation(operationId = "atualizarContato")
   public ContatoResponse atualizar(
       @PathVariable UUID id, @Valid @RequestBody AtualizarContatoRequest request) {
     return contatoService.atualizar(id, request);
@@ -58,6 +63,7 @@ public class ContatoController {
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(operationId = "inativarContato")
   public void inativar(@PathVariable UUID id) {
     contatoService.inativar(id);
   }

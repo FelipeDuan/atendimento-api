@@ -19,8 +19,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.felipeduan.atendimento.modules.conversas.AbstractConversaIntegrationTest;
 import com.jayway.jsonpath.JsonPath;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +37,7 @@ class WebhookIntegrationTest extends AbstractConversaIntegrationTest {
   private static final String PHONE_NUMBER_ID = "phone-test-webhook-001";
 
   @Autowired private AssinaturaWebhook assinaturaWebhook;
+  @Autowired private WebhookService webhookService;
 
   @BeforeEach
   void configurarPhoneNumberId() throws Exception {
@@ -103,6 +111,51 @@ class WebhookIntegrationTest extends AbstractConversaIntegrationTest {
     getMensagens(mockMvc, cenario.tokenAdmin(), conversaId)
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content.length()").value(1));
+  }
+
+  @Test
+  void deveResponderSemErro_quandoReentregasSimultaneasDoMesmoPayload() throws Exception {
+    String waId = "5586999912345";
+    String corpo =
+        corpoMensagemTexto(PHONE_NUMBER_ID, waId, "Cliente Race", "wamid.race.1", "rajada");
+    byte[] bytes = corpo.getBytes(StandardCharsets.UTF_8);
+
+    int concorrentes = 20;
+    ExecutorService pool = Executors.newFixedThreadPool(concorrentes);
+    CountDownLatch liberar = new CountDownLatch(1);
+    List<Future<?>> futures = new ArrayList<>();
+
+    for (int i = 0; i < concorrentes; i++) {
+      futures.add(
+          pool.submit(
+              () -> {
+                liberar.await();
+                webhookService.processar(bytes);
+                return null;
+              }));
+    }
+
+    liberar.countDown();
+    for (Future<?> future : futures) {
+      future.get(30, TimeUnit.SECONDS);
+    }
+    pool.shutdown();
+
+    String contatoId = contatoIdPorNumero(waId);
+    String conversaId = conversaIdPorContato(contatoId);
+    getMensagens(mockMvc, cenario.tokenAdmin(), conversaId)
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content.length()").value(1));
+
+    String contatos =
+        getContatos(mockMvc, cenario.tokenAdmin())
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    List<Map<String, Object>> matches =
+        JsonPath.read(contatos, "$.content[?(@.numeroWhatsapp == '%s')]".formatted(waId));
+    assertThat(matches).hasSize(1);
   }
 
   @Test

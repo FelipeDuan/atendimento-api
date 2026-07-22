@@ -1,8 +1,9 @@
 package com.felipeduan.atendimento.modules.webhook;
 
+import com.felipeduan.atendimento.shared.config.MetaProperties;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,17 +22,18 @@ public class WebhookController {
 
   private final AssinaturaWebhook assinaturaWebhook;
   private final WebhookService webhookService;
-
-  @Value("${meta.verify-token}")
-  private String verifyToken;
+  private final MetaProperties metaProperties;
 
   @GetMapping
+  @Operation(
+      operationId = "verificarWebhook",
+      summary = "Verificação da Meta (devolve hub.challenge)")
   public ResponseEntity<String> verificar(
       @RequestParam("hub.mode") String modo,
       @RequestParam("hub.verify_token") String token,
       @RequestParam("hub.challenge") String challenge) {
 
-    if (!"subscribe".equals(modo) || !verifyToken.equals(token)) {
+    if (!"subscribe".equals(modo) || !metaProperties.verifyToken().equals(token)) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
@@ -39,6 +41,9 @@ public class WebhookController {
   }
 
   @PostMapping
+  @Operation(
+      operationId = "receberWebhook",
+      summary = "Ingestão de mensagem assinada (X-Hub-Signature-256)")
   public ResponseEntity<Void> receber(
       @RequestHeader(name = "X-Hub-Signature-256", required = false) String assinatura,
       @RequestBody byte[] corpoBruto) {

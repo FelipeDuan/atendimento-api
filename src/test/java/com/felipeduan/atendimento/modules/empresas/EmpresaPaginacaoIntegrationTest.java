@@ -72,4 +72,21 @@ class EmpresaPaginacaoIntegrationTest extends AbstractEmpresaIntegrationTest {
         .perform(get(EMPRESAS_PATH + "?sort=nome,asc").header("Authorization", "Bearer " + token))
         .andExpect(status().isOk());
   }
+
+  @Test
+  void deveRetornar400_quandoOrdenaPorCampoDesconhecido() throws Exception {
+    String token = obterTokenPlatformAdmin();
+
+    mockMvc
+        .perform(
+            get(EMPRESAS_PATH)
+                .param("sort", "campoInexistente,desc")
+                .header("Authorization", "Bearer " + token))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.title").value("Ordenação inválida"))
+        .andExpect(
+            jsonPath("$.detail")
+                .value(
+                    "Não é possível ordenar por 'campoInexistente'. Campos aceitos: dataCriacao, id, nome"));
+  }
 }

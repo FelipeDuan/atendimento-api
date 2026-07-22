@@ -16,6 +16,12 @@ public final class TenantContext {
     return Optional.ofNullable(TENANT_ID.get());
   }
 
+  public static UUID exigirTenantId() {
+    return getTenantId()
+        .orElseThrow(
+            () -> new IllegalStateException("Operação de tenant sem tenant_id no contexto."));
+  }
+
   public static void setTenantId(UUID tenantId) {
     TENANT_ID.set(tenantId);
   }
