@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.felipeduan.atendimento.modules.usuarios.exception.EmailExistenteSenhaInvalidaException;
+import com.felipeduan.atendimento.modules.vinculos.VinculoService;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,7 @@ class UsuarioServiceTest {
 
   @Mock UsuarioRepository repository;
   @Mock PasswordEncoder passwordEncoder;
+  @Mock VinculoService vinculoService;
 
   @InjectMocks UsuarioService service;
 
@@ -34,7 +36,7 @@ class UsuarioServiceTest {
     when(repository.save(any(Usuario.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
     Usuario usuario =
-        service.resolverOuCriarAdminInicial(
+        service.resolverOuCriarComSenhaTemporaria(
             "Admin", "admin@empresa.local", "SenhaTemp123!", EMPRESA_ID);
 
     assertThat(usuario.getEmail()).isEqualTo("admin@empresa.local");
@@ -51,15 +53,15 @@ class UsuarioServiceTest {
 
     when(repository.findByEmail("admin@empresa.local")).thenReturn(Optional.of(existente));
     when(passwordEncoder.matches("SenhaTemp123!", "hash-antigo")).thenReturn(true);
-    when(repository.save(existente)).thenReturn(existente);
 
     Usuario usuario =
-        service.resolverOuCriarAdminInicial(
+        service.resolverOuCriarComSenhaTemporaria(
             "Outro Nome", "admin@empresa.local", "SenhaTemp123!", novaEmpresaId);
 
-    assertThat(usuario.getLastEmpresaId()).isEqualTo(novaEmpresaId);
+    assertThat(usuario.getLastEmpresaId()).isEqualTo(EMPRESA_ID);
     assertThat(usuario.isDeveTrocarSenha()).isTrue();
     verify(passwordEncoder, never()).encode(any());
+    verify(repository, never()).save(any());
   }
 
   @Test
@@ -72,7 +74,7 @@ class UsuarioServiceTest {
 
     assertThatThrownBy(
             () ->
-                service.resolverOuCriarAdminInicial(
+                service.resolverOuCriarComSenhaTemporaria(
                     "Admin", "admin@empresa.local", "errada", UUID.randomUUID()))
         .isInstanceOf(EmailExistenteSenhaInvalidaException.class);
 
