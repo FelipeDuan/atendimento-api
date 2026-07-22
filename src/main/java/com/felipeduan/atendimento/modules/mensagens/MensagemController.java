@@ -2,6 +2,7 @@ package com.felipeduan.atendimento.modules.mensagens;
 
 import com.felipeduan.atendimento.modules.mensagens.dto.EnviarMensagemRequest;
 import com.felipeduan.atendimento.modules.mensagens.dto.MensagemResponse;
+import com.felipeduan.atendimento.modules.mensagens.dto.SimularEntradaRequest;
 import com.felipeduan.atendimento.shared.dto.PageResponse;
 import com.felipeduan.atendimento.shared.web.Pagination;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -33,7 +35,8 @@ public class MensagemController {
   @Operation(operationId = "listarMensagens")
   public PageResponse<MensagemResponse> listar(
       @RequestParam UUID conversaId,
-      @Pagination(
+      @ParameterObject
+          @Pagination(
               sort = {"dataHora", "id"},
               direction = Sort.Direction.ASC)
           Pageable pageable) {
@@ -51,5 +54,12 @@ public class MensagemController {
   @Operation(operationId = "enviarMensagem")
   public MensagemResponse enviar(@Valid @RequestBody EnviarMensagemRequest request) {
     return mensagemService.enviar(request);
+  }
+
+  @PostMapping("/entrada")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(operationId = "registrarEntradaMensagem")
+  public MensagemResponse simularEntrada(@Valid @RequestBody SimularEntradaRequest request) {
+    return mensagemService.simularEntrada(request);
   }
 }

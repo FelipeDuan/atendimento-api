@@ -88,6 +88,33 @@ public final class ConversaHttpSupport {
             token));
   }
 
+  public static ResultActions postMensagemEntrada(
+      MockMvc mockMvc,
+      String token,
+      String numeroWhatsapp,
+      String nome,
+      String conteudo,
+      String whatsappMessageId)
+      throws Exception {
+    return postMensagemEntrada(
+        mockMvc,
+        token,
+        """
+        {"numeroWhatsapp":"%s","nome":"%s","tipo":"TEXTO","conteudo":"%s","whatsappMessageId":"%s"}
+        """
+            .formatted(numeroWhatsapp, nome, conteudo, whatsappMessageId));
+  }
+
+  public static ResultActions postMensagemEntrada(MockMvc mockMvc, String token, String corpoJson)
+      throws Exception {
+    return mockMvc.perform(
+        comAutenticacao(
+            post(MENSAGENS_PATH + "/entrada")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(corpoJson),
+            token));
+  }
+
   public static ResultActions getMensagensSemFiltro(MockMvc mockMvc, String token)
       throws Exception {
     return mockMvc.perform(comAutenticacao(get(MENSAGENS_PATH), token));
