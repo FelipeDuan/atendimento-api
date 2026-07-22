@@ -4,6 +4,7 @@ import com.felipeduan.atendimento.modules.auth.exceptions.LoginCredenciaisInvali
 import com.felipeduan.atendimento.modules.auth.exceptions.SemAcessoEmpresaException;
 import com.felipeduan.atendimento.modules.auth.exceptions.SemVinculoAtivoException;
 import com.felipeduan.atendimento.modules.contatos.exception.ContatoNaoEncontradoException;
+import com.felipeduan.atendimento.modules.contatos.exception.NumeroWhatsappJaCadastradoException;
 import com.felipeduan.atendimento.modules.conversas.exception.ConversaEncerradaException;
 import com.felipeduan.atendimento.modules.conversas.exception.ConversaNaoEncontradaException;
 import com.felipeduan.atendimento.modules.conversas.exception.EstadoConversaInvalidoException;
@@ -12,6 +13,11 @@ import com.felipeduan.atendimento.modules.empresas.exception.EmpresaNaoEncontrad
 import com.felipeduan.atendimento.modules.mensagens.exception.MensagemNaoEncontradaException;
 import com.felipeduan.atendimento.modules.platformadmin.exception.CredenciaisInvalidasException;
 import com.felipeduan.atendimento.modules.usuarios.exception.EmailExistenteSenhaInvalidaException;
+import com.felipeduan.atendimento.modules.usuarios.exception.UltimoAdministradorException;
+import com.felipeduan.atendimento.modules.usuarios.exception.UsuarioJaVinculadoException;
+import com.felipeduan.atendimento.modules.usuarios.exception.UsuarioNaoEncontradoException;
+import com.felipeduan.atendimento.modules.webhook.exception.AssinaturaWebhookInvalidaException;
+import com.felipeduan.atendimento.modules.webhook.exception.PayloadWebhookInvalidoException;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.http.HttpHeaders;
@@ -72,6 +78,27 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     return problem;
   }
 
+  @ExceptionHandler(UsuarioNaoEncontradoException.class)
+  public ProblemDetail handleUsuarioNaoEncontrado(UsuarioNaoEncontradoException ex) {
+    ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+    problem.setTitle("Usuário não encontrado");
+    return problem;
+  }
+
+  @ExceptionHandler(UsuarioJaVinculadoException.class)
+  public ProblemDetail handleUsuarioJaVinculado(UsuarioJaVinculadoException ex) {
+    ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+    problem.setTitle("Usuário já vinculado");
+    return problem;
+  }
+
+  @ExceptionHandler(UltimoAdministradorException.class)
+  public ProblemDetail handleUltimoAdministrador(UltimoAdministradorException ex) {
+    ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+    problem.setTitle("Último administrador");
+    return problem;
+  }
+
   @ExceptionHandler(EmpresaNaoEncontradaException.class)
   public ProblemDetail handleEmpresaNaoEncontrada(EmpresaNaoEncontradaException ex) {
     ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
@@ -125,6 +152,29 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
   public ProblemDetail handleContatoNaoEncontrado(ContatoNaoEncontradoException ex) {
     ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
     problem.setTitle("Contato não encontrado");
+    return problem;
+  }
+
+  @ExceptionHandler(NumeroWhatsappJaCadastradoException.class)
+  public ProblemDetail handleNumeroWhatsappJaCadastrado(NumeroWhatsappJaCadastradoException ex) {
+    ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+    problem.setTitle("Número já cadastrado");
+    return problem;
+  }
+
+  @ExceptionHandler(AssinaturaWebhookInvalidaException.class)
+  public ProblemDetail handleAssinaturaWebhookInvalida(AssinaturaWebhookInvalidaException ex) {
+    ProblemDetail problem =
+        ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
+    problem.setTitle("Assinatura inválida");
+    return problem;
+  }
+
+  @ExceptionHandler(PayloadWebhookInvalidoException.class)
+  public ProblemDetail handlePayloadWebhookInvalido(PayloadWebhookInvalidoException ex) {
+    ProblemDetail problem =
+        ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+    problem.setTitle("Payload inválido");
     return problem;
   }
 }

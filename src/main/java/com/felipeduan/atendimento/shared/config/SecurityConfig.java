@@ -57,6 +57,11 @@ public class SecurityConfig {
     auth.requestMatchers(HttpMethod.POST, "/auth/trocar-senha").hasAuthority(Roles.TROCAR_SENHA);
     auth.requestMatchers("/conversas/**").hasAnyAuthority(Roles.ADMINISTRADOR, Roles.ATENDENTE);
     auth.requestMatchers("/mensagens/**").hasAnyAuthority(Roles.ADMINISTRADOR, Roles.ATENDENTE);
+    auth.requestMatchers("/contatos/**").hasAnyAuthority(Roles.ADMINISTRADOR, Roles.ATENDENTE);
+    auth.requestMatchers(HttpMethod.POST, "/usuarios").hasAuthority(Roles.ADMINISTRADOR);
+    auth.requestMatchers(HttpMethod.PUT, "/usuarios/*").hasAuthority(Roles.ADMINISTRADOR);
+    auth.requestMatchers(HttpMethod.GET, "/usuarios", "/usuarios/*")
+        .hasAnyAuthority(Roles.ADMINISTRADOR, Roles.ATENDENTE);
   }
 
   private void rotasPublicas(
