@@ -5,6 +5,7 @@ import com.felipeduan.atendimento.modules.usuarios.dto.CriarUsuarioRequest;
 import com.felipeduan.atendimento.modules.usuarios.dto.UsuarioResponse;
 import com.felipeduan.atendimento.shared.dto.PageResponse;
 import com.felipeduan.atendimento.shared.web.Pagination;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
@@ -30,22 +31,26 @@ public class UsuarioController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  public UsuarioResponse cadastrar(@Valid @RequestBody CriarUsuarioRequest request) {
-    return usuarioService.cadastrar(request);
+  @Operation(operationId = "criarUsuario")
+  public UsuarioResponse criar(@Valid @RequestBody CriarUsuarioRequest request) {
+    return usuarioService.criar(request);
   }
 
   @GetMapping
+  @Operation(operationId = "listarUsuarios")
   public PageResponse<UsuarioResponse> listar(
       @Pagination(sort = {"dataVinculo", "id.usuarioId"}) Pageable pageable) {
     return usuarioService.listar(pageable);
   }
 
   @GetMapping("/{id}")
+  @Operation(operationId = "buscarUsuario")
   public UsuarioResponse buscar(@PathVariable UUID id) {
     return usuarioService.buscar(id);
   }
 
   @PutMapping("/{id}")
+  @Operation(operationId = "atualizarUsuario")
   public UsuarioResponse atualizar(
       @PathVariable UUID id, @Valid @RequestBody AtualizarUsuarioRequest request) {
     return usuarioService.atualizar(id, request);
