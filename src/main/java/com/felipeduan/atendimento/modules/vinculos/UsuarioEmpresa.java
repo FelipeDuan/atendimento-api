@@ -33,4 +33,13 @@ public class UsuarioEmpresa {
     this.status = "ATIVO";
     this.dataVinculo = Instant.now();
   }
+
+  public void atualizar(String perfil, String status) {
+    this.perfil = perfil;
+    this.status = status;
+  }
+
+  public boolean ehAdministradorAtivo() {
+    return "ADMINISTRADOR".equals(perfil) && "ATIVO".equals(status);
+  }
 }

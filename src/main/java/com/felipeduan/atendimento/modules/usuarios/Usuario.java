@@ -56,6 +56,10 @@ public class Usuario {
     this.lastEmpresaId = empresaId;
   }
 
+  public void atualizarNome(String nome) {
+    this.nome = nome;
+  }
+
   public void alterarSenha(String novaSenhaHash) {
     this.senhaHash = novaSenhaHash;
     this.deveTrocarSenha = false;
