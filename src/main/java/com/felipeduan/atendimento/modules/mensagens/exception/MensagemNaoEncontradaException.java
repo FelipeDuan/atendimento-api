@@ -1,4 +1,4 @@
-package com.felipeduan.atendimento.modules.conversas.exception;
+package com.felipeduan.atendimento.modules.mensagens.exception;
 
 import com.felipeduan.atendimento.shared.exception.DomainException;
 import java.util.UUID;

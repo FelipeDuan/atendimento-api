@@ -1,7 +1,7 @@
-package com.felipeduan.atendimento.modules.conversas;
+package com.felipeduan.atendimento.modules.mensagens;
 
-import com.felipeduan.atendimento.modules.conversas.enums.SentidoMensagem;
-import com.felipeduan.atendimento.modules.conversas.enums.TipoMensagem;
+import com.felipeduan.atendimento.modules.mensagens.enums.SentidoMensagem;
+import com.felipeduan.atendimento.modules.mensagens.enums.TipoMensagem;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -52,20 +52,36 @@ public class Mensagem {
   @Column(name = "data_hora", nullable = false)
   private Instant dataHora;
 
-  Mensagem(
-      Conversa conversa,
+  private Mensagem(
+      UUID empresaId,
+      UUID conversaId,
       TipoMensagem tipo,
       String conteudo,
       SentidoMensagem sentido,
       String whatsappMessageId) {
 
-    this.empresaId = conversa.getEmpresaId();
-    this.conversaId = conversa.getId();
+    this.empresaId = empresaId;
+    this.conversaId = conversaId;
     this.tipo = tipo;
     this.conteudo = conteudo;
     this.sentido = sentido;
     this.whatsappMessageId = whatsappMessageId;
     this.dataHora = Instant.now();
+  }
+
+  public static Mensagem saida(
+      UUID empresaId, UUID conversaId, TipoMensagem tipo, String conteudo) {
+    return new Mensagem(empresaId, conversaId, tipo, conteudo, SentidoMensagem.SAIDA, null);
+  }
+
+  public static Mensagem entrada(
+      UUID empresaId,
+      UUID conversaId,
+      TipoMensagem tipo,
+      String conteudo,
+      String whatsappMessageId) {
+    return new Mensagem(
+        empresaId, conversaId, tipo, conteudo, SentidoMensagem.ENTRADA, whatsappMessageId);
   }
 
   public void confirmarEnvio(String whatsappMessageId) {

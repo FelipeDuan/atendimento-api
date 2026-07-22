@@ -1,12 +1,9 @@
 package com.felipeduan.atendimento.modules.conversas;
 
+import com.felipeduan.atendimento.modules.conversas.dto.ConversaParaMensagem;
 import com.felipeduan.atendimento.modules.conversas.dto.ConversaResponse;
-import com.felipeduan.atendimento.modules.conversas.dto.MensagemResponse;
-import com.felipeduan.atendimento.modules.conversas.enums.SentidoMensagem;
 import com.felipeduan.atendimento.modules.conversas.enums.StatusConversa;
-import com.felipeduan.atendimento.modules.conversas.enums.TipoMensagem;
 import com.felipeduan.atendimento.modules.conversas.exception.ConversaNaoEncontradaException;
-import com.felipeduan.atendimento.modules.conversas.exception.MensagemNaoEncontradaException;
 import com.felipeduan.atendimento.shared.dto.PageResponse;
 import com.felipeduan.atendimento.shared.tenancy.TenantContext;
 import java.util.Optional;
@@ -22,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class ConversaService {
 
   private final ConversaRepository conversaRepository;
-  private final MensagemRepository mensagemRepository;
   private final ConversaMapper conversaMapper;
 
   @Transactional(readOnly = true)
@@ -54,60 +50,18 @@ public class ConversaService {
     return conversaMapper.toResponse(conversaRepository.save(conversa));
   }
 
-  @Transactional(readOnly = true)
-  public PageResponse<MensagemResponse> listarMensagens(UUID conversaId, Pageable pageable) {
-    buscarPorId(conversaId);
-    return PageResponse.of(
-        mensagemRepository.findByConversaId(conversaId, pageable).map(conversaMapper::toResponse));
-  }
-
-  @Transactional
-  public MensagemResponse enviarMensagemDeSaida(
-      UUID conversaId, TipoMensagem tipo, String conteudo) {
-
-    Conversa conversa = buscarPorId(conversaId);
-    Mensagem mensagem = conversa.registrarMensagem(tipo, conteudo, SentidoMensagem.SAIDA, null);
-
-    conversaRepository.save(conversa);
-    return conversaMapper.toResponse(mensagemRepository.save(mensagem));
-  }
-
   @Transactional
   public UUID garantirConversaAberta(UUID contatoId) {
     return conversaAbertaDoContato(contatoId).getId();
   }
 
   @Transactional
-  public void registrarMensagemRecebida(
-      UUID contatoId, TipoMensagem tipo, String conteudo, String whatsappMessageId) {
-
-    if (mensagemRepository.existsByWhatsappMessageId(whatsappMessageId)) {
-      return;
-    }
-
-    Conversa conversa = conversaAbertaDoContato(contatoId);
-    Mensagem mensagem =
-        conversa.registrarMensagem(tipo, conteudo, SentidoMensagem.ENTRADA, whatsappMessageId);
-
+  public ConversaParaMensagem prepararRegistroDeMensagem(UUID conversaId) {
+    Conversa conversa = buscarPorId(conversaId);
+    conversa.registrarInteracao();
     conversaRepository.save(conversa);
-    mensagemRepository.save(mensagem);
+    return new ConversaParaMensagem(conversa.getId(), conversa.getEmpresaId());
   }
-
-  @Transactional
-  public MensagemResponse confirmarEnvio(UUID mensagemId, String whatsappMessageId) {
-    Mensagem mensagem = buscarMensagem(mensagemId);
-    mensagem.confirmarEnvio(whatsappMessageId);
-    return conversaMapper.toResponse(mensagemRepository.save(mensagem));
-  }
-
-  @Transactional
-  public MensagemResponse registrarFalhaEnvio(UUID mensagemId, String motivo) {
-    Mensagem mensagem = buscarMensagem(mensagemId);
-    mensagem.registrarFalhaEnvio(motivo);
-    return conversaMapper.toResponse(mensagemRepository.save(mensagem));
-  }
-
-  // abaixo são passos privados
 
   private Conversa conversaAbertaDoContato(UUID contatoId) {
     Optional<Conversa> ultima =
@@ -129,12 +83,6 @@ public class ConversaService {
     return conversaRepository
         .findById(id)
         .orElseThrow(() -> new ConversaNaoEncontradaException(id));
-  }
-
-  private Mensagem buscarMensagem(UUID id) {
-    return mensagemRepository
-        .findById(id)
-        .orElseThrow(() -> new MensagemNaoEncontradaException(id));
   }
 
   private UUID tenantAtual() {

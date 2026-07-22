@@ -1,4 +1,4 @@
-package com.felipeduan.atendimento.modules.conversas;
+package com.felipeduan.atendimento.modules.mensagens;
 
 import java.util.UUID;
 import org.springframework.data.domain.Page;

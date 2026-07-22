@@ -1,4 +1,4 @@
-package com.felipeduan.atendimento.modules.conversas.enums;
+package com.felipeduan.atendimento.modules.mensagens.enums;
 
 public enum TipoMensagem {
   TEXTO,

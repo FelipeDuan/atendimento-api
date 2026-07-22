@@ -1,8 +1,6 @@
 package com.felipeduan.atendimento.modules.conversas;
 
-import com.felipeduan.atendimento.modules.conversas.enums.SentidoMensagem;
 import com.felipeduan.atendimento.modules.conversas.enums.StatusConversa;
-import com.felipeduan.atendimento.modules.conversas.enums.TipoMensagem;
 import com.felipeduan.atendimento.modules.conversas.exception.ConversaEncerradaException;
 import com.felipeduan.atendimento.modules.conversas.exception.EstadoConversaInvalidoException;
 import jakarta.persistence.Column;
@@ -71,15 +69,15 @@ public class Conversa {
     return new Conversa(anterior.empresaId, anterior.contatoId, anterior.id);
   }
 
-  public Mensagem registrarMensagem(
-      TipoMensagem tipo, String conteudo, SentidoMensagem sentido, String whatsappMessageId) {
-
+  public void exigirAberta() {
     if (estaEncerrada()) {
       throw new ConversaEncerradaException(id);
     }
+  }
 
+  public void registrarInteracao() {
+    exigirAberta();
     this.ultimaInteracao = Instant.now();
-    return new Mensagem(this, tipo, conteudo, sentido, whatsappMessageId);
   }
 
   public void encerrar() {
