@@ -3,9 +3,7 @@ package com.felipeduan.atendimento.modules.conversas;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.felipeduan.atendimento.modules.conversas.enums.SentidoMensagem;
 import com.felipeduan.atendimento.modules.conversas.enums.StatusConversa;
-import com.felipeduan.atendimento.modules.conversas.enums.TipoMensagem;
 import com.felipeduan.atendimento.modules.conversas.exception.ConversaEncerradaException;
 import com.felipeduan.atendimento.modules.conversas.exception.EstadoConversaInvalidoException;
 import java.time.Instant;
@@ -18,22 +16,27 @@ class ConversaTest {
   private static final UUID CONTATO = UUID.randomUUID();
 
   @Test
-  void naoDeveRegistrarMensagemEmConversaEncerrada() {
+  void naoDeveRegistrarInteracao_quandoConversaEncerrada() {
     Conversa conversa = Conversa.abrir(EMPRESA, CONTATO);
     conversa.encerrar();
 
-    assertThatThrownBy(
-            () ->
-                conversa.registrarMensagem(TipoMensagem.TEXTO, "oi", SentidoMensagem.ENTRADA, null))
-        .isInstanceOf(ConversaEncerradaException.class);
+    assertThatThrownBy(conversa::registrarInteracao).isInstanceOf(ConversaEncerradaException.class);
   }
 
   @Test
-  void deveAtualizarUltimaInteracao_quandoRegistraMensagem() {
+  void naoDeveExigirAberta_quandoConversaEncerrada() {
+    Conversa conversa = Conversa.abrir(EMPRESA, CONTATO);
+    conversa.encerrar();
+
+    assertThatThrownBy(conversa::exigirAberta).isInstanceOf(ConversaEncerradaException.class);
+  }
+
+  @Test
+  void deveAtualizarUltimaInteracao_quandoRegistraInteracao() {
     Conversa conversa = Conversa.abrir(EMPRESA, CONTATO);
     Instant antes = conversa.getUltimaInteracao();
 
-    conversa.registrarMensagem(TipoMensagem.TEXTO, "oi", SentidoMensagem.ENTRADA, "wamid.1");
+    conversa.registrarInteracao();
 
     assertThat(conversa.getUltimaInteracao()).isAfterOrEqualTo(antes);
   }

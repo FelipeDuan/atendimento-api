@@ -3,6 +3,9 @@ package com.felipeduan.atendimento.modules.conversas;
 import static com.felipeduan.atendimento.support.AuthHttpSupport.obterToken;
 import static com.felipeduan.atendimento.support.AuthIntegrationTestSupport.liberarSenhaDefinitiva;
 import static com.felipeduan.atendimento.support.ConversaHttpSupport.getConversa;
+import static com.felipeduan.atendimento.support.ConversaHttpSupport.getMensagem;
+import static com.felipeduan.atendimento.support.ConversaHttpSupport.getMensagens;
+import static com.felipeduan.atendimento.support.ConversaHttpSupport.postMensagem;
 import static com.felipeduan.atendimento.support.EmpresaHttpSupport.cnpjUnico;
 import static com.felipeduan.atendimento.support.EmpresaHttpSupport.corpoCriarEmpresa;
 import static com.felipeduan.atendimento.support.EmpresaHttpSupport.postCriarEmpresa;
@@ -20,6 +23,35 @@ class ConversaIsolamentoIntegrationTest extends AbstractConversaIntegrationTest 
 
   @Test
   void naoDeveVisualizarConversaDeOutroTenant() throws Exception {
+    TenantB tenantB = criarTenantB();
+
+    getConversa(mockMvc, cenario.tokenAdmin(), tenantB.conversaId().toString())
+        .andExpect(status().isNotFound());
+
+    getConversa(mockMvc, tenantB.tokenAdmin(), tenantB.conversaId().toString())
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void naoDeveAcessarMensagensDeOutroTenant() throws Exception {
+    String jsonMensagem =
+        postMensagem(mockMvc, cenario.tokenAdmin(), cenario.conversaId().toString(), "só A")
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    String mensagemId = JsonPath.read(jsonMensagem, "$.id");
+
+    TenantB tenantB = criarTenantB();
+
+    getMensagem(mockMvc, tenantB.tokenAdmin(), mensagemId).andExpect(status().isNotFound());
+    getMensagens(mockMvc, tenantB.tokenAdmin(), cenario.conversaId().toString())
+        .andExpect(status().isNotFound());
+    postMensagem(mockMvc, tenantB.tokenAdmin(), cenario.conversaId().toString(), "hack")
+        .andExpect(status().isNotFound());
+  }
+
+  private TenantB criarTenantB() throws Exception {
     String cnpj = cnpjUnico();
     String emailAdminB = "admin-b-" + cnpj + "@empresa.local";
     String senhaAdminB = "SenhaTemp123!";
@@ -43,9 +75,8 @@ class ConversaIsolamentoIntegrationTest extends AbstractConversaIntegrationTest 
         TenantContext.withTenantId(
             empresaB, () -> conversaService.garantirConversaAberta(contatoB));
 
-    getConversa(mockMvc, cenario.tokenAdmin(), conversaB.toString())
-        .andExpect(status().isNotFound());
-
-    getConversa(mockMvc, tokenAdminB, conversaB.toString()).andExpect(status().isOk());
+    return new TenantB(tokenAdminB, conversaB);
   }
+
+  private record TenantB(String tokenAdmin, UUID conversaId) {}
 }

@@ -1,11 +1,16 @@
 package com.felipeduan.atendimento.modules.conversas;
 
+import static com.felipeduan.atendimento.support.ConversaHttpSupport.getMensagem;
 import static com.felipeduan.atendimento.support.ConversaHttpSupport.getMensagens;
+import static com.felipeduan.atendimento.support.ConversaHttpSupport.getMensagensSemFiltro;
 import static com.felipeduan.atendimento.support.ConversaHttpSupport.patchConversa;
 import static com.felipeduan.atendimento.support.ConversaHttpSupport.postMensagem;
+import static com.felipeduan.atendimento.support.ConversaHttpSupport.postMensagemComCorpo;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.jayway.jsonpath.JsonPath;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class ConversaCicloVidaIntegrationTest extends AbstractConversaIntegrationTest {
@@ -63,5 +68,42 @@ class ConversaCicloVidaIntegrationTest extends AbstractConversaIntegrationTest {
         .andExpect(jsonPath("$.content.length()").value(2))
         .andExpect(jsonPath("$.content[0].conteudo").value("primeira"))
         .andExpect(jsonPath("$.content[1].conteudo").value("segunda"));
+  }
+
+  @Test
+  void deveBuscarMensagemPorId() throws Exception {
+    String json =
+        postMensagem(mockMvc, cenario.tokenAdmin(), cenario.conversaId().toString(), "única")
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    String mensagemId = JsonPath.read(json, "$.id");
+
+    getMensagem(mockMvc, cenario.tokenAdmin(), mensagemId)
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(mensagemId))
+        .andExpect(jsonPath("$.conteudo").value("única"))
+        .andExpect(jsonPath("$.conversaId").value(cenario.conversaId().toString()));
+  }
+
+  @Test
+  void deveRetornar400_quandoEnviaMensagemSemConversaId() throws Exception {
+    postMensagemComCorpo(mockMvc, cenario.tokenAdmin(), "{\"tipo\":\"TEXTO\",\"conteudo\":\"oi\"}")
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.title").value("Dados inválidos"));
+  }
+
+  @Test
+  void deveRetornar404_quandoMensagemNaoExiste() throws Exception {
+    getMensagem(mockMvc, cenario.tokenAdmin(), UUID.randomUUID().toString())
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.title").value("Mensagem não encontrada"));
+  }
+
+  @Test
+  void deveRetornar400_quandoListaMensagensSemConversaId() throws Exception {
+    getMensagensSemFiltro(mockMvc, cenario.tokenAdmin()).andExpect(status().isBadRequest());
   }
 }
