@@ -53,7 +53,7 @@ final class PaginationPageableResolver implements HandlerMethodArgumentResolver 
 
   private void exigirOrdenacaoConhecida(Sort sort, String[] permitidos) {
     Set<String> aceitos = new HashSet<>(Arrays.asList(permitidos));
-    
+
     for (Sort.Order ordem : sort) {
       if (!aceitos.contains(ordem.getProperty())) {
         throw new OrdenacaoInvalidaException(ordem.getProperty(), Arrays.asList(permitidos));

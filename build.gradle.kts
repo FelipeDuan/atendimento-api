@@ -76,6 +76,8 @@ spotless {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+	environment("META_APP_SECRET", "test-meta-app-secret")
+	environment("META_VERIFY_TOKEN", "test-verify-token")
 	testLogging {
 		events("passed", "failed", "skipped")
 		showStandardStreams = true
