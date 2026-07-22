@@ -56,6 +56,7 @@ public class SecurityConfig {
     auth.requestMatchers(HttpMethod.DELETE, "/empresas/*").hasAuthority(Roles.PLATFORM_ADMIN);
     auth.requestMatchers(HttpMethod.POST, "/auth/trocar-senha").hasAuthority(Roles.TROCAR_SENHA);
     auth.requestMatchers("/conversas/**").hasAnyAuthority(Roles.ADMINISTRADOR, Roles.ATENDENTE);
+    auth.requestMatchers("/mensagens/**").hasAnyAuthority(Roles.ADMINISTRADOR, Roles.ATENDENTE);
   }
 
   private void rotasPublicas(

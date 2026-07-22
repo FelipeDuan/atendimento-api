@@ -7,9 +7,9 @@ import com.felipeduan.atendimento.modules.contatos.exception.ContatoNaoEncontrad
 import com.felipeduan.atendimento.modules.conversas.exception.ConversaEncerradaException;
 import com.felipeduan.atendimento.modules.conversas.exception.ConversaNaoEncontradaException;
 import com.felipeduan.atendimento.modules.conversas.exception.EstadoConversaInvalidoException;
-import com.felipeduan.atendimento.modules.conversas.exception.MensagemNaoEncontradaException;
 import com.felipeduan.atendimento.modules.empresas.exception.CnpjJaCadastradoException;
 import com.felipeduan.atendimento.modules.empresas.exception.EmpresaNaoEncontradaException;
+import com.felipeduan.atendimento.modules.mensagens.exception.MensagemNaoEncontradaException;
 import com.felipeduan.atendimento.modules.platformadmin.exception.CredenciaisInvalidasException;
 import com.felipeduan.atendimento.modules.usuarios.exception.EmailExistenteSenhaInvalidaException;
 import java.util.ArrayList;

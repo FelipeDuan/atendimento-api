@@ -1,9 +1,10 @@
 package com.felipeduan.atendimento.modules.mensagens;
 
-import com.felipeduan.atendimento.modules.conversas.dto.MensagemResponse;
 import com.felipeduan.atendimento.modules.mensagens.dto.EnviarMensagemRequest;
+import com.felipeduan.atendimento.modules.mensagens.dto.MensagemResponse;
 import com.felipeduan.atendimento.shared.dto.PageResponse;
 import com.felipeduan.atendimento.shared.web.Pagination;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -15,11 +16,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/conversas/{conversaId}/mensagens")
+@RequestMapping("/mensagens")
+@Tag(name = "Mensagens")
 @RequiredArgsConstructor
 public class MensagemController {
 
@@ -27,7 +30,7 @@ public class MensagemController {
 
   @GetMapping
   public PageResponse<MensagemResponse> listar(
-      @PathVariable UUID conversaId,
+      @RequestParam UUID conversaId,
       @Pagination(
               sort = {"dataHora", "id"},
               direction = Sort.Direction.ASC)
@@ -35,10 +38,14 @@ public class MensagemController {
     return mensagemService.listar(conversaId, pageable);
   }
 
+  @GetMapping("/{id}")
+  public MensagemResponse buscar(@PathVariable UUID id) {
+    return mensagemService.buscar(id);
+  }
+
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  public MensagemResponse enviar(
-      @PathVariable UUID conversaId, @Valid @RequestBody EnviarMensagemRequest request) {
-    return mensagemService.enviar(conversaId, request);
+  public MensagemResponse enviar(@Valid @RequestBody EnviarMensagemRequest request) {
+    return mensagemService.enviar(request);
   }
 }

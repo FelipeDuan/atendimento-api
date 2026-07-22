@@ -5,6 +5,7 @@ import com.felipeduan.atendimento.modules.conversas.dto.ConversaResponse;
 import com.felipeduan.atendimento.modules.conversas.enums.StatusConversa;
 import com.felipeduan.atendimento.shared.dto.PageResponse;
 import com.felipeduan.atendimento.shared.web.Pagination;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/conversas")
+@Tag(name = "Conversas")
 @RequiredArgsConstructor
 public class ConversaController {
 

@@ -12,6 +12,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 public final class ConversaHttpSupport {
 
   public static final String CONVERSAS_PATH = "/conversas";
+  public static final String MENSAGENS_PATH = "/mensagens";
 
   private ConversaHttpSupport() {
     throw new IllegalStateException("Classe utilitária não deve ser instanciada");
@@ -39,21 +40,39 @@ public final class ConversaHttpSupport {
   public static ResultActions getMensagens(MockMvc mockMvc, String token, String conversaId)
       throws Exception {
     return mockMvc.perform(
-        comAutenticacao(get(CONVERSAS_PATH + "/" + conversaId + "/mensagens"), token));
+        comAutenticacao(get(MENSAGENS_PATH).param("conversaId", conversaId), token));
+  }
+
+  public static ResultActions getMensagem(MockMvc mockMvc, String token, String mensagemId)
+      throws Exception {
+    return mockMvc.perform(comAutenticacao(get(MENSAGENS_PATH + "/" + mensagemId), token));
   }
 
   public static ResultActions postMensagem(
       MockMvc mockMvc, String token, String conversaId, String conteudo) throws Exception {
     return mockMvc.perform(
         comAutenticacao(
-            post(CONVERSAS_PATH + "/" + conversaId + "/mensagens")
+            post(MENSAGENS_PATH)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
-                    {"tipo":"TEXTO","conteudo":"%s"}
+                    {"conversaId":"%s","tipo":"TEXTO","conteudo":"%s"}
                     """
-                        .formatted(conteudo)),
+                        .formatted(conversaId, conteudo)),
             token));
+  }
+
+  public static ResultActions postMensagemComCorpo(MockMvc mockMvc, String token, String corpoJson)
+      throws Exception {
+    return mockMvc.perform(
+        comAutenticacao(
+            post(MENSAGENS_PATH).contentType(MediaType.APPLICATION_JSON).content(corpoJson),
+            token));
+  }
+
+  public static ResultActions getMensagensSemFiltro(MockMvc mockMvc, String token)
+      throws Exception {
+    return mockMvc.perform(comAutenticacao(get(MENSAGENS_PATH), token));
   }
 
   private static MockHttpServletRequestBuilder comAutenticacao(
