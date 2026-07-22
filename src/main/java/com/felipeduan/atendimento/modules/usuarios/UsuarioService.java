@@ -100,7 +100,7 @@ public class UsuarioService {
     if (!passwordEncoder.matches(senha, usuario.getSenhaHash())) {
       throw new EmailExistenteSenhaInvalidaException();
     }
-    
+
     return usuario;
   }
 

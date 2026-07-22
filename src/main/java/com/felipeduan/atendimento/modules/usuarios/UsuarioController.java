@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,7 +40,7 @@ public class UsuarioController {
   @GetMapping
   @Operation(operationId = "listarUsuarios")
   public PageResponse<UsuarioResponse> listar(
-      @Pagination(sort = {"dataVinculo", "id.usuarioId"}) Pageable pageable) {
+      @ParameterObject @Pagination(sort = {"dataVinculo", "id.usuarioId"}) Pageable pageable) {
     return usuarioService.listar(pageable);
   }
 

@@ -211,7 +211,6 @@ class UsuarioCrudIntegrationTest extends AbstractConversaIntegrationTest {
         .andExpect(status().isOk());
     getUsuario(mockMvc, cenario.tokenAdmin(), usuarioId).andExpect(status().isNotFound());
 
-
     putUsuario(
             mockMvc,
             cenario.tokenAdmin(),
