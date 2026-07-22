@@ -1,5 +1,6 @@
 package com.felipeduan.atendimento.modules.empresas;
 
+import com.felipeduan.atendimento.modules.empresas.enums.EmpresaStatus;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;

@@ -5,6 +5,7 @@ import com.felipeduan.atendimento.modules.empresas.dto.AtualizarEmpresaRequest;
 import com.felipeduan.atendimento.modules.empresas.dto.CriarEmpresaRequest;
 import com.felipeduan.atendimento.modules.empresas.dto.EmpresaResponse;
 import com.felipeduan.atendimento.modules.empresas.dto.EmpresaResumoResponse;
+import com.felipeduan.atendimento.modules.empresas.enums.EmpresaStatus;
 import com.felipeduan.atendimento.modules.empresas.exception.CnpjJaCadastradoException;
 import com.felipeduan.atendimento.modules.empresas.exception.EmpresaNaoEncontradaException;
 import com.felipeduan.atendimento.modules.usuarios.Usuario;

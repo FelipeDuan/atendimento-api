@@ -1,6 +1,6 @@
 package com.felipeduan.atendimento.modules.empresas.dto;
 
-import com.felipeduan.atendimento.modules.empresas.EmpresaStatus;
+import com.felipeduan.atendimento.modules.empresas.enums.EmpresaStatus;
 import java.time.Instant;
 import java.util.UUID;
 

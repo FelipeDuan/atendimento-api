@@ -1,5 +1,6 @@
 package com.felipeduan.atendimento.modules.empresas;
 
+import com.felipeduan.atendimento.modules.empresas.enums.EmpresaStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
