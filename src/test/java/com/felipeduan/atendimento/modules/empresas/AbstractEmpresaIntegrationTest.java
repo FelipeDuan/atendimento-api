@@ -35,7 +35,7 @@ public abstract class AbstractEmpresaIntegrationTest extends AbstractIntegration
   @BeforeEach
   void prepararCenarioEmpresa() {
     LimpezaDadosTestSupport.limparDadosNegocio(
-        empresaRepository, usuarioRepository, entityManager, transactionTemplate);
+        usuarioRepository, entityManager, transactionTemplate);
     administradorPlataformaRepository.deleteAll();
     PlatformAdminTestSupport.salvarAdministrador(
         administradorPlataformaRepository, passwordEncoder, NOME, EMAIL, SENHA);

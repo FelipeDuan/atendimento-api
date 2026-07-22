@@ -1,6 +1,5 @@
 package com.felipeduan.atendimento.support;
 
-import com.felipeduan.atendimento.modules.empresas.EmpresaRepository;
 import com.felipeduan.atendimento.modules.usuarios.UsuarioRepository;
 import jakarta.persistence.EntityManager;
 import java.util.List;
@@ -14,7 +13,6 @@ public final class LimpezaDadosTestSupport {
   }
 
   public static void limparDadosNegocio(
-      EmpresaRepository empresaRepository,
       UsuarioRepository usuarioRepository,
       EntityManager entityManager,
       TransactionTemplate transactionTemplate) {
@@ -28,6 +26,14 @@ public final class LimpezaDadosTestSupport {
       transactionTemplate.executeWithoutResult(
           status -> {
             RlsTestSupport.definirTenant(entityManager, empresaId);
+            entityManager
+                .createNativeQuery("DELETE FROM mensagem WHERE empresa_id = :empresaId")
+                .setParameter("empresaId", empresaId)
+                .executeUpdate();
+            entityManager
+                .createNativeQuery("DELETE FROM conversa WHERE empresa_id = :empresaId")
+                .setParameter("empresaId", empresaId)
+                .executeUpdate();
             entityManager
                 .createNativeQuery("DELETE FROM contato WHERE empresa_id = :empresaId")
                 .setParameter("empresaId", empresaId)

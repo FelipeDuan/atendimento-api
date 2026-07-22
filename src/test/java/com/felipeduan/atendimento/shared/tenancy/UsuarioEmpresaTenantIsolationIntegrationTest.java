@@ -35,7 +35,7 @@ class UsuarioEmpresaTenantIsolationIntegrationTest extends AbstractIntegrationTe
   @BeforeEach
   void prepararDados() {
     LimpezaDadosTestSupport.limparDadosNegocio(
-        empresaRepository, usuarioRepository, entityManager, transactionTemplate);
+        usuarioRepository, entityManager, transactionTemplate);
 
     empresaA = DadosTesteEmpresa.criar(empresaRepository, "Empresa A");
     empresaB = DadosTesteEmpresa.criar(empresaRepository, "Empresa B");
