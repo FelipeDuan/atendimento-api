@@ -1,6 +1,7 @@
 package com.felipeduan.atendimento.modules.empresas;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,4 +15,6 @@ public interface EmpresaRepository extends JpaRepository<Empresa, UUID> {
 
   @Query("SELECT e.id FROM Empresa e")
   List<UUID> findIdsAtivas();
+
+  Optional<Empresa> findByPhoneNumberId(String phoneNumberId);
 }

@@ -15,6 +15,7 @@ import com.felipeduan.atendimento.shared.dto.PageResponse;
 import com.felipeduan.atendimento.shared.tenancy.TenantContext;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -82,6 +83,11 @@ public class EmpresaService {
     return empresaRepository.findById(id).orElseThrow(() -> new EmpresaNaoEncontradaException(id));
   }
 
+  @Transactional(readOnly = true)
+  public Optional<UUID> buscarIdPorPhoneNumberId(String phoneNumberId) {
+    return empresaRepository.findByPhoneNumberId(phoneNumberId).map(Empresa::getId);
+  }
+
   @Transactional
   public EmpresaResponse atualizar(UUID id, AtualizarEmpresaRequest request) {
     Empresa empresa = buscarPorId(id);
@@ -109,7 +115,7 @@ public class EmpresaService {
   }
 
   private Usuario resolverAdminInicial(AdminInicialRequest admin, UUID empresaId) {
-    return usuarioService.resolverOuCriarAdminInicial(
+    return usuarioService.resolverOuCriarComSenhaTemporaria(
         admin.nome(), admin.email(), admin.senhaTemporaria(), empresaId);
   }
 
