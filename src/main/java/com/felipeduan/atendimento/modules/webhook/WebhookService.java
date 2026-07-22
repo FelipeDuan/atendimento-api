@@ -46,13 +46,21 @@ public class WebhookService {
   }
 
   private void registrar(MensagemRecebida recebida) {
-    UUID contatoId = contatoService.localizarOuCriar(recebida.numero(), recebida.nome());
+    UUID contatoId = resolverContato(recebida);
 
     try {
       mensagemService.registrarRecebida(
           contatoId, recebida.tipo(), recebida.conteudo(), recebida.whatsappMessageId());
     } catch (DataIntegrityViolationException e) {
       log.info("Mensagem já processada (reentrega da Meta): {}", recebida.whatsappMessageId());
+    }
+  }
+
+  private UUID resolverContato(MensagemRecebida recebida) {
+    try {
+      return contatoService.localizarOuCriar(recebida.numero(), recebida.nome());
+    } catch (DataIntegrityViolationException e) {
+      return contatoService.localizarOuCriar(recebida.numero(), recebida.nome());
     }
   }
 
