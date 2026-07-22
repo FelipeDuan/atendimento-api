@@ -6,6 +6,7 @@ import com.felipeduan.atendimento.modules.empresas.dto.EmpresaResponse;
 import com.felipeduan.atendimento.modules.empresas.dto.EmpresaResumoResponse;
 import com.felipeduan.atendimento.shared.dto.PageResponse;
 import com.felipeduan.atendimento.shared.web.Pagination;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
@@ -33,28 +34,35 @@ public class EmpresaController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
+  @Operation(operationId = "criarEmpresa")
   public EmpresaResponse criar(@Valid @RequestBody CriarEmpresaRequest request) {
     return empresaService.criar(request);
   }
 
   @GetMapping
-  public PageResponse<EmpresaResumoResponse> listar(@Pagination Pageable pageable) {
+  @Operation(operationId = "listarEmpresas")
+  public PageResponse<EmpresaResumoResponse> listar(
+      @Pagination(sort = {"dataCriacao", "id", "nome"}) Pageable pageable) {
     return empresaService.listarAtivas(pageable);
   }
 
   @GetMapping("/inativas")
-  public PageResponse<EmpresaResumoResponse> listarInativas(@Pagination Pageable pageable) {
+  @Operation(operationId = "listarEmpresasInativas")
+  public PageResponse<EmpresaResumoResponse> listarInativas(
+      @Pagination(sort = {"dataCriacao", "id", "nome"}) Pageable pageable) {
     return empresaService.listarInativas(pageable);
   }
 
   @GetMapping("/{id}")
   @PreAuthorize("hasPermission(#id, 'Empresa', 'read')")
+  @Operation(operationId = "buscarEmpresa")
   public EmpresaResponse buscar(@PathVariable UUID id) {
     return empresaService.buscar(id);
   }
 
   @PutMapping("/{id}")
   @PreAuthorize("hasPermission(#id, 'Empresa', 'write')")
+  @Operation(operationId = "atualizarEmpresa")
   public EmpresaResponse atualizar(
       @PathVariable UUID id, @Valid @RequestBody AtualizarEmpresaRequest request) {
     return empresaService.atualizar(id, request);
@@ -62,6 +70,7 @@ public class EmpresaController {
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(operationId = "inativarEmpresa")
   public void inativar(@PathVariable UUID id) {
     empresaService.inativar(id);
   }

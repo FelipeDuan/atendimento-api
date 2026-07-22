@@ -1,6 +1,7 @@
 package com.felipeduan.atendimento.shared.config;
 
 import com.felipeduan.atendimento.shared.security.JwtService;
+import com.felipeduan.atendimento.shared.security.ProblemDetailAccessDeniedHandler;
 import com.felipeduan.atendimento.shared.security.Roles;
 import com.felipeduan.atendimento.shared.security.TenantContextFilter;
 import org.springframework.context.annotation.Bean;
@@ -25,9 +26,13 @@ import org.springframework.security.web.access.intercept.RequestAuthorizationCon
 public class SecurityConfig {
 
   private final TenantContextFilter tenantContextFilter;
+  private final ProblemDetailAccessDeniedHandler accessDeniedHandler;
 
-  public SecurityConfig(TenantContextFilter tenantContextFilter) {
+  public SecurityConfig(
+      TenantContextFilter tenantContextFilter,
+      ProblemDetailAccessDeniedHandler accessDeniedHandler) {
     this.tenantContextFilter = tenantContextFilter;
+    this.accessDeniedHandler = accessDeniedHandler;
   }
 
   @Bean
@@ -83,6 +88,7 @@ public class SecurityConfig {
         .oauth2ResourceServer(
             oauth2 ->
                 oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
+        .exceptionHandling(handling -> handling.accessDeniedHandler(this.accessDeniedHandler))
         .addFilterAfter(tenantContextFilter, BearerTokenAuthenticationFilter.class);
   }
 

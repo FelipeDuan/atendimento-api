@@ -1,5 +1,8 @@
 package com.felipeduan.atendimento.shared.web;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import org.springframework.core.MethodParameter;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -42,6 +45,19 @@ final class PaginationPageableResolver implements HandlerMethodArgumentResolver 
     resolver.setFallbackPageable(
         PageRequest.of(0, pagination.size(), Sort.by(pagination.direction(), pagination.sort())));
 
-    return resolver.resolveArgument(parameter, mavContainer, webRequest, binderFactory);
+    Pageable pageable =
+        resolver.resolveArgument(parameter, mavContainer, webRequest, binderFactory);
+    exigirOrdenacaoConhecida(pageable.getSort(), pagination.sort());
+    return pageable;
+  }
+
+  private void exigirOrdenacaoConhecida(Sort sort, String[] permitidos) {
+    Set<String> aceitos = new HashSet<>(Arrays.asList(permitidos));
+    
+    for (Sort.Order ordem : sort) {
+      if (!aceitos.contains(ordem.getProperty())) {
+        throw new OrdenacaoInvalidaException(ordem.getProperty(), Arrays.asList(permitidos));
+      }
+    }
   }
 }
