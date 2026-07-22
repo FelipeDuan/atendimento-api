@@ -6,7 +6,16 @@ spring:
     user: test
     password: test
 
-# logging:
-#   level:
-#     org.hibernate.SQL: debug
-#     org.hibernate.orm.jdbc.bind: trace
+jwt:
+  secret: test-secret-com-pelo-menos-32-caracteres
+  expiration-minutes: 15
+
+meta:
+  app-secret: test-meta-app-secret
+  verify-token: test-verify-token
+  access-token: test-access-token
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace

@@ -38,3 +38,7 @@ out/
 
 ### Environment Variables ###
 .env
+
+### Test / local artifacts ###
+logs/
+scripts/

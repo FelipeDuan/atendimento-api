@@ -1,6 +1,12 @@
 spring:
   application:
     name: atendimento
+  profiles:
+    default: dev
+  data:
+    web:
+      pageable:
+        max-page-size: 100
   datasource:
     url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:atendimento}
     username: ${APP_DB_USER:atendimento_app}
@@ -13,3 +19,23 @@ spring:
     enabled: true
     user: ${FLYWAY_USER:${POSTGRES_USER:atendimento}}
     password: ${FLYWAY_PASSWORD:${POSTGRES_PASSWORD:trocar}}
+
+springdoc:
+  api-docs:
+    enabled: false
+    path: /v3/api-docs
+
+scalar:
+  enabled: false
+  path: /scalar
+  url: /v3/api-docs
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration-minutes: ${JWT_EXPIRATION_MINUTES}
+
+meta:
+  api-url: ${META_API_URL:https://graph.facebook.com/v21.0}
+  access-token: ${META_ACCESS_TOKEN:}
+  app-secret: ${META_APP_SECRET}
+  verify-token: ${META_VERIFY_TOKEN}

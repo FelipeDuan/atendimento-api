@@ -1,0 +1,10 @@
+.git
+.github
+.gradle
+build
+.env
+.env.*
+!.env.example
+*.md
+compose.yaml
+docker-compose*.yaml
