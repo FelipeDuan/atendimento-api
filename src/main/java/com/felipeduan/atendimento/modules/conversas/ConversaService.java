@@ -1,5 +1,6 @@
 package com.felipeduan.atendimento.modules.conversas;
 
+import com.felipeduan.atendimento.modules.contatos.ContatoService;
 import com.felipeduan.atendimento.modules.conversas.dto.ConversaParaMensagem;
 import com.felipeduan.atendimento.modules.conversas.dto.ConversaResponse;
 import com.felipeduan.atendimento.modules.conversas.enums.StatusConversa;
@@ -20,6 +21,7 @@ public class ConversaService {
 
   private final ConversaRepository conversaRepository;
   private final ConversaMapper conversaMapper;
+  private final ContatoService contatoService;
 
   @Transactional(readOnly = true)
   public PageResponse<ConversaResponse> listar(StatusConversa status, Pageable pageable) {
@@ -48,6 +50,12 @@ public class ConversaService {
     Conversa conversa = buscarPorId(id);
     conversa.reabrir();
     return conversaMapper.toResponse(conversaRepository.save(conversa));
+  }
+
+  @Transactional
+  public ConversaResponse abrirParaContato(UUID contatoId) {
+    contatoService.exigirExistente(contatoId);
+    return conversaMapper.toResponse(conversaAbertaDoContato(contatoId));
   }
 
   @Transactional

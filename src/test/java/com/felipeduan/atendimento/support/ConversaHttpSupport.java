@@ -18,6 +18,24 @@ public final class ConversaHttpSupport {
     throw new IllegalStateException("Classe utilitária não deve ser instanciada");
   }
 
+  public static ResultActions postConversa(MockMvc mockMvc, String token, String contatoId)
+      throws Exception {
+    return mockMvc.perform(
+        comAutenticacao(
+            post(CONVERSAS_PATH)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"contatoId\":\"%s\"}".formatted(contatoId)),
+            token));
+  }
+
+  public static ResultActions postConversaComCorpo(MockMvc mockMvc, String token, String corpoJson)
+      throws Exception {
+    return mockMvc.perform(
+        comAutenticacao(
+            post(CONVERSAS_PATH).contentType(MediaType.APPLICATION_JSON).content(corpoJson),
+            token));
+  }
+
   public static ResultActions getConversas(MockMvc mockMvc, String token) throws Exception {
     return mockMvc.perform(comAutenticacao(get(CONVERSAS_PATH), token));
   }

@@ -29,7 +29,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.support.TransactionTemplate;
 
 @AutoConfigureMockMvc
-abstract class AbstractConversaIntegrationTest extends AbstractIntegrationTest {
+public abstract class AbstractConversaIntegrationTest extends AbstractIntegrationTest {
 
   @Autowired protected MockMvc mockMvc;
   @Autowired protected AdministradorPlataformaRepository administradorPlataformaRepository;
