@@ -3,6 +3,11 @@ package com.felipeduan.atendimento.shared.exception;
 import com.felipeduan.atendimento.modules.auth.exceptions.LoginCredenciaisInvalidasException;
 import com.felipeduan.atendimento.modules.auth.exceptions.SemAcessoEmpresaException;
 import com.felipeduan.atendimento.modules.auth.exceptions.SemVinculoAtivoException;
+import com.felipeduan.atendimento.modules.contatos.exception.ContatoNaoEncontradoException;
+import com.felipeduan.atendimento.modules.conversas.exception.ConversaEncerradaException;
+import com.felipeduan.atendimento.modules.conversas.exception.ConversaNaoEncontradaException;
+import com.felipeduan.atendimento.modules.conversas.exception.EstadoConversaInvalidoException;
+import com.felipeduan.atendimento.modules.conversas.exception.MensagemNaoEncontradaException;
 import com.felipeduan.atendimento.modules.empresas.exception.CnpjJaCadastradoException;
 import com.felipeduan.atendimento.modules.empresas.exception.EmpresaNaoEncontradaException;
 import com.felipeduan.atendimento.modules.platformadmin.exception.CredenciaisInvalidasException;
@@ -85,6 +90,41 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
   public ProblemDetail handleSemAcessoEmpresa(SemAcessoEmpresaException ex) {
     ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
     problem.setTitle("Acesso negado");
+    return problem;
+  }
+
+  @ExceptionHandler(ConversaEncerradaException.class)
+  public ProblemDetail handleConversaEncerrada(ConversaEncerradaException ex) {
+    ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+    problem.setTitle("Conversa encerrada");
+    return problem;
+  }
+
+  @ExceptionHandler(EstadoConversaInvalidoException.class)
+  public ProblemDetail handleEstadoConversaInvalido(EstadoConversaInvalidoException ex) {
+    ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+    problem.setTitle("Estado inválido");
+    return problem;
+  }
+
+  @ExceptionHandler(ConversaNaoEncontradaException.class)
+  public ProblemDetail handleConversaNaoEncontrada(ConversaNaoEncontradaException ex) {
+    ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+    problem.setTitle("Conversa não encontrada");
+    return problem;
+  }
+
+  @ExceptionHandler(MensagemNaoEncontradaException.class)
+  public ProblemDetail handleMensagemNaoEncontrada(MensagemNaoEncontradaException ex) {
+    ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+    problem.setTitle("Mensagem não encontrada");
+    return problem;
+  }
+
+  @ExceptionHandler(ContatoNaoEncontradoException.class)
+  public ProblemDetail handleContatoNaoEncontrado(ContatoNaoEncontradoException ex) {
+    ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+    problem.setTitle("Contato não encontrado");
     return problem;
   }
 }
