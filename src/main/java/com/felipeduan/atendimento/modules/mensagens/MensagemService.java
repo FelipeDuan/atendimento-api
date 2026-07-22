@@ -37,8 +37,7 @@ public class MensagemService {
   public MensagemResponse enviar(EnviarMensagemRequest request) {
     ConversaParaMensagem conversa =
         conversaService.prepararRegistroDeMensagem(request.conversaId());
-    Mensagem mensagem =
-        Mensagem.saida(conversa.empresaId(), conversa.id(), request.tipo(), request.conteudo());
+    Mensagem mensagem = Mensagem.saida(conversa, request.tipo(), request.conteudo());
     return mensagemMapper.toResponse(mensagemRepository.save(mensagem));
   }
 
@@ -52,8 +51,7 @@ public class MensagemService {
 
     UUID conversaId = conversaService.garantirConversaAberta(contatoId);
     ConversaParaMensagem conversa = conversaService.prepararRegistroDeMensagem(conversaId);
-    Mensagem mensagem =
-        Mensagem.entrada(conversa.empresaId(), conversa.id(), tipo, conteudo, whatsappMessageId);
+    Mensagem mensagem = Mensagem.entrada(conversa, tipo, conteudo, whatsappMessageId);
     mensagemRepository.save(mensagem);
   }
 

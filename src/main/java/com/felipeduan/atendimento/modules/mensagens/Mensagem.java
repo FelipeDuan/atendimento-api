@@ -1,5 +1,6 @@
 package com.felipeduan.atendimento.modules.mensagens;
 
+import com.felipeduan.atendimento.modules.conversas.dto.ConversaParaMensagem;
 import com.felipeduan.atendimento.modules.mensagens.enums.SentidoMensagem;
 import com.felipeduan.atendimento.modules.mensagens.enums.TipoMensagem;
 import jakarta.persistence.Column;
@@ -69,19 +70,20 @@ public class Mensagem {
     this.dataHora = Instant.now();
   }
 
-  public static Mensagem saida(
-      UUID empresaId, UUID conversaId, TipoMensagem tipo, String conteudo) {
-    return new Mensagem(empresaId, conversaId, tipo, conteudo, SentidoMensagem.SAIDA, null);
+  public static Mensagem saida(ConversaParaMensagem conversa, TipoMensagem tipo, String conteudo) {
+    return new Mensagem(
+        conversa.empresaId(), conversa.id(), tipo, conteudo, SentidoMensagem.SAIDA, null);
   }
 
   public static Mensagem entrada(
-      UUID empresaId,
-      UUID conversaId,
-      TipoMensagem tipo,
-      String conteudo,
-      String whatsappMessageId) {
+      ConversaParaMensagem conversa, TipoMensagem tipo, String conteudo, String whatsappMessageId) {
     return new Mensagem(
-        empresaId, conversaId, tipo, conteudo, SentidoMensagem.ENTRADA, whatsappMessageId);
+        conversa.empresaId(),
+        conversa.id(),
+        tipo,
+        conteudo,
+        SentidoMensagem.ENTRADA,
+        whatsappMessageId);
   }
 
   public void confirmarEnvio(String whatsappMessageId) {
