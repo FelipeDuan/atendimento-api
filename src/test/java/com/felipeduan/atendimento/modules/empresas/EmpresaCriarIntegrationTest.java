@@ -160,7 +160,7 @@ class EmpresaCriarIntegrationTest extends AbstractEmpresaIntegrationTest {
 
     var usuario = usuarioRepository.findById(usuarioIdPrimeira).orElseThrow();
     assertThat(usuario.isDeveTrocarSenha()).isTrue();
-    assertThat(usuario.getLastEmpresaId()).isEqualTo(empresaIdSegunda);
+    assertThat(usuario.getLastEmpresaId()).isEqualTo(empresaIdPrimeira);
 
     assertThat(
             RlsTestSupport.contarVinculosDaEmpresa(

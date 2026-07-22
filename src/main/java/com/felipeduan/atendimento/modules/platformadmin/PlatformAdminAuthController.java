@@ -3,6 +3,7 @@ package com.felipeduan.atendimento.modules.platformadmin;
 import com.felipeduan.atendimento.modules.platformadmin.dto.LoginPlataformaRequest;
 import com.felipeduan.atendimento.modules.platformadmin.dto.LoginPlataformaResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/auth/plataforma")
+@Tag(name = "Auth")
 public class PlatformAdminAuthController {
 
   private final PlatformAdminAuthService authService;

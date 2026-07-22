@@ -103,10 +103,5 @@ fun carregarDotEnv(arquivo: File): Map<String, String> {
 
 tasks.named<BootRun>("bootRun") {
 	val dotEnv = carregarDotEnv(layout.projectDirectory.file(".env").asFile)
-	dotEnv.forEach { (nome, valor) ->
-		
-		if (System.getenv(nome) == null) {
-			environment(nome, valor)
-		}
-	}
+	dotEnv.forEach { (nome, valor) -> environment(nome, valor) }
 }

@@ -5,12 +5,13 @@ import com.felipeduan.atendimento.shared.security.Roles;
 import com.felipeduan.atendimento.shared.security.TenantContextFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
@@ -30,51 +31,49 @@ public class SecurityConfig {
   }
 
   @Bean
-  @Profile("dev")
-  SecurityFilterChain devSecurityFilterChain(HttpSecurity http) throws Exception {
+  SecurityFilterChain securityFilterChain(HttpSecurity http, Environment environment)
+      throws Exception {
+
+    boolean documentacaoPublica = environment.matchesProfiles("dev");
+
     return baseChain(http)
         .authorizeHttpRequests(
-            auth ->
-                auth.requestMatchers(HttpMethod.POST, "/empresas")
-                    .hasAuthority(Roles.PLATFORM_ADMIN)
-                    .requestMatchers(HttpMethod.GET, "/empresas", "/empresas/inativas")
-                    .hasAuthority(Roles.PLATFORM_ADMIN)
-                    .requestMatchers(HttpMethod.DELETE, "/empresas/*")
-                    .hasAuthority(Roles.PLATFORM_ADMIN)
-                    .requestMatchers(HttpMethod.POST, "/auth/trocar-senha")
-                    .hasAuthority(Roles.TROCAR_SENHA)
-                    .requestMatchers(
-                        "/auth/login",
-                        "/auth/plataforma/login",
-                        "/actuator/health",
-                        "/v3/api-docs/**",
-                        "/scalar",
-                        "/scalar/**")
-                    .permitAll()
-                    .anyRequest()
-                    .access(negarTokenSomenteTrocarSenha()))
+            auth -> {
+              regrasDeAutorizacao(auth);
+              rotasPublicas(auth, documentacaoPublica);
+              auth.anyRequest().access(negarTokenSomenteTrocarSenha());
+            })
         .build();
   }
 
-  @Bean
-  @Profile("!dev")
-  SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    return baseChain(http)
-        .authorizeHttpRequests(
-            auth ->
-                auth.requestMatchers(HttpMethod.POST, "/empresas")
-                    .hasAuthority(Roles.PLATFORM_ADMIN)
-                    .requestMatchers(HttpMethod.GET, "/empresas", "/empresas/inativas")
-                    .hasAuthority(Roles.PLATFORM_ADMIN)
-                    .requestMatchers(HttpMethod.DELETE, "/empresas/*")
-                    .hasAuthority(Roles.PLATFORM_ADMIN)
-                    .requestMatchers(HttpMethod.POST, "/auth/trocar-senha")
-                    .hasAuthority(Roles.TROCAR_SENHA)
-                    .requestMatchers("/auth/login", "/auth/plataforma/login", "/actuator/health")
-                    .permitAll()
-                    .anyRequest()
-                    .access(negarTokenSomenteTrocarSenha()))
-        .build();
+  private void regrasDeAutorizacao(
+      AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry
+          auth) {
+
+    auth.requestMatchers(HttpMethod.POST, "/empresas").hasAuthority(Roles.PLATFORM_ADMIN);
+    auth.requestMatchers(HttpMethod.GET, "/empresas", "/empresas/inativas")
+        .hasAuthority(Roles.PLATFORM_ADMIN);
+    auth.requestMatchers(HttpMethod.DELETE, "/empresas/*").hasAuthority(Roles.PLATFORM_ADMIN);
+    auth.requestMatchers(HttpMethod.POST, "/auth/trocar-senha").hasAuthority(Roles.TROCAR_SENHA);
+    auth.requestMatchers("/conversas/**").hasAnyAuthority(Roles.ADMINISTRADOR, Roles.ATENDENTE);
+    auth.requestMatchers("/mensagens/**").hasAnyAuthority(Roles.ADMINISTRADOR, Roles.ATENDENTE);
+    auth.requestMatchers("/contatos/**").hasAnyAuthority(Roles.ADMINISTRADOR, Roles.ATENDENTE);
+    auth.requestMatchers(HttpMethod.POST, "/usuarios").hasAuthority(Roles.ADMINISTRADOR);
+    auth.requestMatchers(HttpMethod.PUT, "/usuarios/*").hasAuthority(Roles.ADMINISTRADOR);
+    auth.requestMatchers(HttpMethod.GET, "/usuarios", "/usuarios/*")
+        .hasAnyAuthority(Roles.ADMINISTRADOR, Roles.ATENDENTE);
+  }
+
+  private void rotasPublicas(
+      AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth,
+      boolean incluirDocumentacao) {
+
+    auth.requestMatchers("/auth/login", "/auth/plataforma/login", "/actuator/health").permitAll();
+    auth.requestMatchers("/webhooks/**").permitAll();
+
+    if (incluirDocumentacao) {
+      auth.requestMatchers("/v3/api-docs/**", "/scalar", "/scalar/**").permitAll();
+    }
   }
 
   private HttpSecurity baseChain(HttpSecurity http) throws Exception {

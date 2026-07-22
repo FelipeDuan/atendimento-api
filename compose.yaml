@@ -9,6 +9,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - ${POSTGRES_PORT}:5432
+    labels:
+      org.springframework.boot.ignore: "true"
   redis:
     image: 'redis:7'
     ports:

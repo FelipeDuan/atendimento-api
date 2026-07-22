@@ -4,8 +4,10 @@ springdoc:
 
 scalar:
   enabled: true
+  path: /scalar
+  url: /v3/api-docs
   pageTitle: "Atendimento API"
-  description: "API para SaaS de atendimento via WhatsApp"
+  description: "API REST multi-tenant de atendimento via WhatsApp"
   theme: deepSpace
   layout: modern
   darkMode: true

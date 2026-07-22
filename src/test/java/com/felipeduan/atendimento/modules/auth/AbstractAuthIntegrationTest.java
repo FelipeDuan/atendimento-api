@@ -43,7 +43,7 @@ abstract class AbstractAuthIntegrationTest extends AbstractIntegrationTest {
   @BeforeEach
   void prepararCenarioAuth() throws Exception {
     LimpezaDadosTestSupport.limparDadosNegocio(
-        empresaRepository, usuarioRepository, entityManager, transactionTemplate);
+        usuarioRepository, entityManager, transactionTemplate);
 
     administradorPlataformaRepository.deleteAll();
 

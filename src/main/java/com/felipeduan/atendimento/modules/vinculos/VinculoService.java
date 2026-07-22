@@ -1,5 +1,8 @@
 package com.felipeduan.atendimento.modules.vinculos;
 
+import com.felipeduan.atendimento.modules.usuarios.exception.UltimoAdministradorException;
+import com.felipeduan.atendimento.modules.usuarios.exception.UsuarioJaVinculadoException;
+import com.felipeduan.atendimento.modules.usuarios.exception.UsuarioNaoEncontradoException;
 import com.felipeduan.atendimento.shared.security.Roles;
 import com.felipeduan.atendimento.shared.tenancy.TenantContext;
 import com.felipeduan.atendimento.shared.tenancy.TenantRlsConfigurer;
@@ -8,6 +11,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,8 +27,43 @@ public class VinculoService {
 
   @Transactional
   public UsuarioEmpresa vincularComoAdministrador(UUID usuarioId, UUID empresaId) {
-    var usuarioEmpresa = new UsuarioEmpresa(usuarioId, empresaId, Roles.ADMINISTRADOR);
-    return usuarioEmpresaRepository.save(usuarioEmpresa);
+    return vincular(usuarioId, empresaId, Roles.ADMINISTRADOR);
+  }
+
+  @Transactional
+  public UsuarioEmpresa vincular(UUID usuarioId, UUID empresaId, String perfil) {
+    UsuarioEmpresaId id = new UsuarioEmpresaId(usuarioId, empresaId);
+    if (usuarioEmpresaRepository.existsById(id)) {
+      throw new UsuarioJaVinculadoException();
+    }
+    return usuarioEmpresaRepository.save(new UsuarioEmpresa(usuarioId, empresaId, perfil));
+  }
+
+  @Transactional(readOnly = true)
+  public Page<UsuarioEmpresa> listarVinculosDoTenant(Pageable pageable) {
+    return usuarioEmpresaRepository.findByStatus(STATUS_ATIVO, pageable);
+  }
+
+  @Transactional(readOnly = true)
+  public Optional<UsuarioEmpresa> buscarVinculo(UUID usuarioId) {
+    return usuarioEmpresaRepository.findByIdUsuarioIdAndStatus(usuarioId, STATUS_ATIVO);
+  }
+
+  @Transactional(readOnly = true)
+  public Optional<UsuarioEmpresa> buscarVinculoQualquerStatus(UUID usuarioId) {
+    return usuarioEmpresaRepository.findByIdUsuarioId(usuarioId);
+  }
+
+  @Transactional
+  public UsuarioEmpresa atualizarVinculo(UUID usuarioId, String novoPerfil, String novoStatus) {
+    UsuarioEmpresa vinculo =
+        usuarioEmpresaRepository
+            .findByIdUsuarioId(usuarioId)
+            .orElseThrow(() -> new UsuarioNaoEncontradoException(usuarioId));
+
+    exigirOutroAdministradorAtivo(vinculo, novoPerfil, novoStatus);
+    vinculo.atualizar(novoPerfil, novoStatus);
+    return usuarioEmpresaRepository.save(vinculo);
   }
 
   @Transactional(readOnly = true)
@@ -61,6 +101,19 @@ public class VinculoService {
     }
 
     return Optional.of(vinculoEncontrado);
+  }
+
+  private void exigirOutroAdministradorAtivo(
+      UsuarioEmpresa vinculo, String novoPerfil, String novoStatus) {
+    boolean deixaDeSerAdminAtivo =
+        vinculo.ehAdministradorAtivo()
+            && (!Roles.ADMINISTRADOR.equals(novoPerfil) || !STATUS_ATIVO.equals(novoStatus));
+
+    if (deixaDeSerAdminAtivo
+        && usuarioEmpresaRepository.countByPerfilAndStatus(Roles.ADMINISTRADOR, STATUS_ATIVO)
+            <= 1) {
+      throw new UltimoAdministradorException();
+    }
   }
 
   public UUID resolverEmpresaPadrao(UUID lastEmpresaId, List<UsuarioEmpresa> vinculos) {

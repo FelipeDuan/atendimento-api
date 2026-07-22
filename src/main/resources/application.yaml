@@ -33,3 +33,9 @@ scalar:
 jwt:
   secret: ${JWT_SECRET}
   expiration-minutes: ${JWT_EXPIRATION_MINUTES}
+
+meta:
+  api-url: ${META_API_URL:https://graph.facebook.com/v21.0}
+  access-token: ${META_ACCESS_TOKEN:}
+  app-secret: ${META_APP_SECRET}
+  verify-token: ${META_VERIFY_TOKEN}
