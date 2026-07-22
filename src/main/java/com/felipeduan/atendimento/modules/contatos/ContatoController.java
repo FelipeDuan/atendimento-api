@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -41,7 +42,8 @@ public class ContatoController {
   @GetMapping
   @Operation(operationId = "listarContatos")
   public PageResponse<ContatoResponse> listar(
-      @Pagination(
+      @ParameterObject
+          @Pagination(
               sort = {"nome", "id"},
               direction = Sort.Direction.ASC)
           Pageable pageable) {

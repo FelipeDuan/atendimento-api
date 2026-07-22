@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -42,14 +43,14 @@ public class EmpresaController {
   @GetMapping
   @Operation(operationId = "listarEmpresas")
   public PageResponse<EmpresaResumoResponse> listar(
-      @Pagination(sort = {"dataCriacao", "id", "nome"}) Pageable pageable) {
+      @ParameterObject @Pagination(sort = {"dataCriacao", "id", "nome"}) Pageable pageable) {
     return empresaService.listarAtivas(pageable);
   }
 
   @GetMapping("/inativas")
   @Operation(operationId = "listarEmpresasInativas")
   public PageResponse<EmpresaResumoResponse> listarInativas(
-      @Pagination(sort = {"dataCriacao", "id", "nome"}) Pageable pageable) {
+      @ParameterObject @Pagination(sort = {"dataCriacao", "id", "nome"}) Pageable pageable) {
     return empresaService.listarInativas(pageable);
   }
 

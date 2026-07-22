@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,7 +43,7 @@ public class ConversaController {
   @Operation(operationId = "listarConversas")
   public PageResponse<ConversaResponse> listar(
       @RequestParam(required = false) StatusConversa status,
-      @Pagination(sort = {"ultimaInteracao", "id"}) Pageable pageable) {
+      @ParameterObject @Pagination(sort = {"ultimaInteracao", "id"}) Pageable pageable) {
     return conversaService.listar(status, pageable);
   }
 
@@ -53,10 +54,7 @@ public class ConversaController {
   }
 
   @PatchMapping("/{id}")
-  @Operation(
-      operationId = "atualizarConversa",
-      summary = "Encerrar ou reabrir conversa",
-      description = "Corpo: {\"acao\":\"ENCERRAR\"} ou {\"acao\":\"REABRIR\"}.")
+  @Operation(operationId = "atualizarConversa")
   public ConversaResponse atualizar(
       @PathVariable UUID id, @Valid @RequestBody AtualizarConversaRequest request) {
 

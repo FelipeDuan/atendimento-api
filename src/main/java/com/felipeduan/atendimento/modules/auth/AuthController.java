@@ -37,9 +37,7 @@ public class AuthController {
   }
 
   @PostMapping("/switch-tenant")
-  @Operation(
-      operationId = "switchTenant",
-      summary = "Reemite o token para outra empresa vinculada, sem pedir senha")
+  @Operation(operationId = "switchTenant")
   public SwitchTenantResponse switchTenant(@Valid @RequestBody SwitchTenantRequest request) {
     return service.trocarTenant(request);
   }

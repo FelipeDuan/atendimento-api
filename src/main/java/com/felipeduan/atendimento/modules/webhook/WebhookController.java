@@ -25,9 +25,7 @@ public class WebhookController {
   private final MetaProperties metaProperties;
 
   @GetMapping
-  @Operation(
-      operationId = "verificarWebhook",
-      summary = "Verificação da Meta (devolve hub.challenge)")
+  @Operation(operationId = "verificarWebhook")
   public ResponseEntity<String> verificar(
       @RequestParam("hub.mode") String modo,
       @RequestParam("hub.verify_token") String token,
@@ -41,9 +39,7 @@ public class WebhookController {
   }
 
   @PostMapping
-  @Operation(
-      operationId = "receberWebhook",
-      summary = "Ingestão de mensagem assinada (X-Hub-Signature-256)")
+  @Operation(operationId = "receberWebhook")
   public ResponseEntity<Void> receber(
       @RequestHeader(name = "X-Hub-Signature-256", required = false) String assinatura,
       @RequestBody byte[] corpoBruto) {
