@@ -6,6 +6,7 @@ import com.felipeduan.atendimento.modules.auth.dto.SwitchTenantRequest;
 import com.felipeduan.atendimento.modules.auth.dto.SwitchTenantResponse;
 import com.felipeduan.atendimento.modules.auth.dto.TrocarSenhaRequest;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/auth")
+@Tag(name = "Auth")
 @RequiredArgsConstructor
 public class AuthController {
 

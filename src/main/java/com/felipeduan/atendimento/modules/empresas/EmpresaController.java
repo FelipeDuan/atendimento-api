@@ -6,6 +6,7 @@ import com.felipeduan.atendimento.modules.empresas.dto.EmpresaResponse;
 import com.felipeduan.atendimento.modules.empresas.dto.EmpresaResumoResponse;
 import com.felipeduan.atendimento.shared.dto.PageResponse;
 import com.felipeduan.atendimento.shared.web.Pagination;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/empresas")
+@Tag(name = "Empresas")
 @RequiredArgsConstructor
 public class EmpresaController {
 
