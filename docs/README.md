@@ -39,6 +39,7 @@ docs/
 └── guides/                   ← operação e verificação
     ├── getting-started.md
     ├── verification-scalar.md
+    ├── ci-cd.md
     └── requirements-mapping.md
 ```
 
@@ -49,7 +50,7 @@ docs/
 | `flows/` | Quem implementa ou revisa fluxos | Diagramas de sequência e estados |
 | `api/` | Consumidores HTTP | Endpoints e códigos de erro |
 | `decisions/` | Revisores de desenho | Porquês estáveis do código atual |
-| `guides/` | Quem clona e valida | Boot, roteiro Scalar, mapeamento de requisitos |
+| `guides/` | Quem clona e valida | Boot, roteiro Scalar, CI/CD, mapeamento de requisitos |
 
 Ordem de leitura sugerida (entender → operar → validar):
 
@@ -61,9 +62,13 @@ Ordem de leitura sugerida (entender → operar → validar):
 5. [flows/webhook-inbound.md](flows/webhook-inbound.md) — ingestão pública
 6. [guides/verification-scalar.md](guides/verification-scalar.md) — exercitar
    tudo no Scalar (e o webhook no terminal)
+7. [guides/ci-cd.md](guides/ci-cd.md) — pipeline, GHCR, Dokploy e URL de
+   produção
 
 Quem for avaliar a entrega pode ir direto ao item 6 após o `make boot`, e
 usar os demais documentos para entender o “porquê” de cada comportamento.
+A instância de produção e o fluxo de deploy estão no item 7 (QA interno
+não é publicado).
 
 ## Convenções nesta documentação
 

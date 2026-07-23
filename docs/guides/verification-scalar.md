@@ -14,6 +14,10 @@ aparecem em **bash** e **fish** quando a sintaxe difere.
 No Scalar, `POST /mensagens/entrada` fica em **Mensagens**;
 `GET`/`POST /webhooks/messages` ficam em **Webhook**.
 
+Este roteiro assume o ambiente **local** (profile `dev`). Em produção o
+Scalar está desligado; para a URL pública e o pipeline, ver
+[ci-cd.md](ci-cd.md).
+
 ## Antes
 
 1. Na raiz do módulo (`atendimento/`):

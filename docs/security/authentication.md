@@ -9,8 +9,8 @@
 | Após login com senha temporária | `TROCAR_SENHA` | Apenas troca de senha |
 | `POST /auth/switch-tenant` | novo `tenant_id` | Mesmo usuário, outra empresa |
 
-JWT HS256, segredo ≥ 32 bytes em variável de ambiente, TTL configurável
-(padrão 15 minutos).
+JWT HS256, segredo ≥ 32 bytes em variável de ambiente. TTL via
+`JWT_EXPIRATION_MINUTES` (referência local no `.env.example`: 15 minutos).
 
 ## Fluxo do administrador inicial
 

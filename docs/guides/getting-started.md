@@ -11,7 +11,7 @@
 ## Ambiente
 
 Todos os comandos abaixo partem do diretório `atendimento/` (raiz deste
-módulo Maven/Gradle).
+módulo Gradle).
 
 ### 1. Configurar variáveis
 
