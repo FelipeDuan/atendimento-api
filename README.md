@@ -24,10 +24,11 @@ permitir reproduzir a verificação completa (automatizada e no Scalar).
 |---|---|
 | [docs/](docs/README.md) | Índice: arquitetura, segurança, fluxos, API |
 | [Primeiros passos](docs/guides/getting-started.md) | Ambiente, variáveis e boot |
-| [Roteiro Scalar](docs/guides/verification-scalar.md) | Como testar tudo, passo a passo |
+| [Roteiro Scalar](docs/guides/verification-scalar.md) | Como testar tudo, passo a passo (local) |
+| [CI/CD e ambientes](docs/guides/ci-cd.md) | GitHub Actions, GHCR, Dokploy, produção |
 | [Requisitos → código](docs/guides/requirements-mapping.md) | Contrato esperado vs implementação |
-| `/scalar` (profile `dev`) | OpenAPI interativo |
-| `/v3/api-docs` | OpenAPI JSON |
+| `/scalar` (profile `dev`) | OpenAPI interativo (só local / `dev`) |
+| `/v3/api-docs` | OpenAPI JSON (só local / `dev`) |
 
 ## Pré-requisitos
 
@@ -79,6 +80,17 @@ Definidas em `.env` (modelo: `.env.example`). Sem default na aplicação:
 O `bootRun` carrega o `.env` automaticamente. Em produção, use secrets do
 ambiente de execução.
 
+## Ambientes
+
+| Ambiente | Uso na entrega |
+|---|---|
+| Local (`make boot` + Scalar) | Verificação completa recomendada |
+| Produção (`https://api.atendimento.felipeduan.com`) | Instância publicada; health e API via HTTP |
+| QA (`develop`) | Interno — URL não publicada |
+
+Em produção, Scalar e OpenAPI ficam desligados. Detalhes de pipeline e
+deploy: [docs/guides/ci-cd.md](docs/guides/ci-cd.md).
+
 ## Verificação
 
 **bash** / **fish** (comandos idênticos):
@@ -97,7 +109,8 @@ curl -sS http://localhost:8080/actuator/health
 
 - `make check` — formatação, Checkstyle e suíte de testes (gate de CI)
 - `make test-fresh` — limpa artefatos e reexecuta a suíte
-- Roteiro funcional completo: [docs/guides/verification-scalar.md](docs/guides/verification-scalar.md)
+- Roteiro funcional completo (local): [docs/guides/verification-scalar.md](docs/guides/verification-scalar.md)
+- Produção (smoke): `curl -sS https://api.atendimento.felipeduan.com/actuator/health`
 
 ## Recepção de mensagens
 

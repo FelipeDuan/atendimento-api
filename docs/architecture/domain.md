@@ -34,15 +34,16 @@ classDiagram
     SentidoMensagem sentido
     String conteudo
     String whatsappMessageId
-    boolean envioPendente()
+    boolean isEnvioPendente()
   }
   Conversa "1" --> "*" Mensagem : contém
 ```
 
 Invariantes relevantes:
 
-- Mensagem de saída só em conversa aberta (`Conversa.registrarMensagem` /
-  preparação no service). Violação → conflito HTTP (**409**).
+- Mensagem de saída só em conversa aberta: `ConversaService.prepararRegistroDeMensagem`
+  chama `Conversa.registrarInteracao()`, que exige conversa aberta
+  (`exigirAberta`). Violação → conflito HTTP (**409**).
 - Webhook e entrada autenticada **não** reabrem conversa encerrada: abrem
   nova conversa com `previous_conversation_id` apontando para a anterior.
 - Reabertura manual apenas via `PATCH` com `acao=REABRIR`.
